@@ -4,11 +4,14 @@ import * as secp from '@noble/secp256k1'
 
 import { sha256 as nobleSha256 } from '@noble/hashes/sha2'
 import { ripemd160 as nobleRipemd160 } from '@noble/hashes/ripemd160'
-import { concatBytes } from '@noble/hashes/utils'
+import { bytesToHex, concatBytes, hexToBytes } from '@noble/hashes/utils'
 import type { Transaction, SignedTransaction } from './transaction'
 import ByteBuffer from 'bytebuffer'
 import { Types } from './taiyi/serializer'
-import { DEFAULT_CHAIN_ID } from './client'
+import { DEFAULT_ADDRESS_PREFIX, DEFAULT_CHAIN_ID } from './client'
+import { hmac } from '@noble/hashes/hmac'
+
+secp.etc.hmacSha256Sync = (k, ...m) => hmac(nobleSha256, k, secp.etc.concatBytes(...m));
 
 
 export const NETWORK_ID = new Uint8Array([0x80])
@@ -56,11 +59,11 @@ export function encodePrivate(key: Uint8Array | string): string {
 
 export function decodePrivate(encodedKey: string): Uint8Array {
   const buffer = bs58.decode(encodedKey)
-  assert.strictEqual(buffer.slice(0, 1), NETWORK_ID, 'private key network id mismatch')
+  assert.deepStrictEqual(buffer.slice(0, 1), NETWORK_ID, 'private key network id mismatch')
   const checksum = buffer.slice(-4)
   const key = buffer.slice(0, -4)
   const checksumVerify = doubleSha256(key).slice(0, 4)
-  assert.strictEqual(checksumVerify, checksum, 'private key checksum mismatch')
+  assert.deepStrictEqual(checksumVerify, checksum, 'private key checksum mismatch')
   return key
 }
 
@@ -91,8 +94,7 @@ export class PublicKey {
 
   constructor(
     public readonly key: Uint8Array,
-    //TODO(enpitsulin): default prefix
-    public readonly prefix: string = ''
+    public readonly prefix: string = DEFAULT_ADDRESS_PREFIX
   ) {
     assert(
       secp.ProjectivePoint.fromHex(key).assertValidity(),
@@ -100,8 +102,8 @@ export class PublicKey {
     )
   }
 
-  public verify(message: Uint8Array, signature: Uint8Array): boolean {
-    return secp.verify(signature, message, this.key)
+  public verify(message: Uint8Array, signature: Signature): boolean {
+    return secp.verify(signature.data, message, this.key)
   }
 
   public toString() {
@@ -120,8 +122,6 @@ export class PublicKey {
 export type KeyRole = 'owner' | 'active' | 'posting' | 'memo'
 
 export class PrivateKey {
-
-
   public static from(value: string | Uint8Array) {
     if (typeof value === 'string') {
       return PrivateKey.fromString(value)
@@ -147,7 +147,7 @@ export class PrivateKey {
     assert(secp.utils.isValidPrivateKey(key), 'invalid private key')
   }
 
-  public sign(message: Uint8Array): secp.SignatureWithRecovery {
+  public sign(message: Uint8Array): Signature {
     let signature: secp.SignatureWithRecovery
     let attempts = 0
     do {
@@ -157,7 +157,7 @@ export class PrivateKey {
 
       signature = secp.sign(message, this.key, options)
     } while (!isCanonicalSignature(signature.toCompactRawBytes()))
-    return signature
+    return new Signature(signature.toCompactRawBytes(), signature.recovery)
   }
 
   /**
@@ -221,6 +221,36 @@ function signTransaction(
   }
 
   return signedTransaction
+}
+
+export class Signature {
+  public static fromU8(array: Uint8Array) {
+    assert.strictEqual(array.length, 65, 'invalid signature')
+    const recovery = array.at(0)! - 31
+    const data = array.slice(1)
+    return new Signature(data, recovery)
+  }
+
+  public static fromString(string: string) {
+    return Signature.fromU8(hexToBytes(string))
+  }
+
+  constructor(public data: Uint8Array, public recovery: number) {
+    assert.equal(data.length, 64, 'invalid signature')
+  }
+
+  public recover(message: Uint8Array, prefix?: string) {
+    const sig = secp.Signature.fromCompact(this.data).addRecoveryBit(this.recovery)
+    return new PublicKey(sig.recoverPublicKey(message).toRawBytes(), prefix)
+  }
+
+  public toBuffer() {
+    return concatBytes(new Uint8Array([this.recovery + 31]), this.data)
+  }
+
+  public toString() {
+    return bytesToHex(this.toBuffer())
+  }
 }
 
 export const cryptoUtils = {
