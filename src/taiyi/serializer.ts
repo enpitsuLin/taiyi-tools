@@ -185,23 +185,9 @@ const AuthoritySerializer = ObjectSerializer([
   ['key_auths', FlatMapSerializer(PublicKeySerializer, UInt16Serializer)],
 ])
 
-const BeneficiarySerializer = ObjectSerializer([
-  ['account', StringSerializer],
-  ['weight', UInt16Serializer],
-])
-
 const PriceSerializer = ObjectSerializer([
   ['base', AssetSerializer],
   ['quote', AssetSerializer],
-])
-
-const SignedBlockHeaderSerializer = ObjectSerializer([
-  ['previous', BinarySerializer(20)],
-  ['timestamp', DateSerializer],
-  ['witness', StringSerializer],
-  ['transaction_merkle_root', BinarySerializer(20)],
-  ['extensions', ArraySerializer(VoidSerializer)],
-  ['witness_signature', BinarySerializer(65)],
 ])
 
 const ChainPropertiesSerializer = ObjectSerializer([
