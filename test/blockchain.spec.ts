@@ -1,4 +1,4 @@
-import { Client, type SignedBlock, type AppliedOperation, BlockchainMode } from '../src'
+import { Client, type AppliedOperation, BlockchainMode } from '../src'
 
 describe('blockchain', () => {
   vi.setConfig({
@@ -25,7 +25,7 @@ describe('blockchain', () => {
     for await (const block of client.blockchain.getBlocks({ from: 1, to: 2 })) {
       ids.push(block.block_id)
     }
-    assert.deepEqual(ids, expectedIds)
+    expect(ids).toEqual(expectedIds)
   })
 
   it('should stream blocks', async function () {
@@ -38,7 +38,7 @@ describe('blockchain', () => {
         while (true) {
           const { value: block, done } = await reader.read();
           if (done) {
-            assert.deepEqual(ids, expectedIds);
+            expect(ids).toEqual(expectedIds);
             resolve();
             break;
           }
@@ -59,7 +59,7 @@ describe('blockchain', () => {
       if (block.block_id === latest.block_id) {
         continue
       }
-      assert.equal(block.previous, latest.block_id, 'should have the same block id')
+      expect(block.previous).toBe(latest.block_id)
       break
     }
   })
@@ -71,7 +71,7 @@ describe('blockchain', () => {
         const reader = stream.getReader();
         reader.read()
           .then(() => {
-            assert(false, 'unexpected stream data')
+            expect(false, 'unexpected stream data')
           }).
           catch(() => {
             reject()
@@ -87,7 +87,7 @@ describe('blockchain', () => {
       const reader = stream.getReader();
       reader.read()
         .then(({ value }) => {
-          assert(value! >= current)
+          expect(value! >= current)
           resolve()
         })
         .catch(reject)
@@ -98,7 +98,7 @@ describe('blockchain', () => {
     const now = Date.now()
     const header = await client.blockchain.getCurrentBlockHeader()
     const ts = new Date(header.timestamp + 'Z').getTime()
-    assert(Math.abs((ts / 1000) - (now / 1000)) < 120, 'blockheader timestamp too old')
+    expect(Math.abs((ts / 1000) - (now / 1000)) < 120, 'blockheader timestamp too old')
   })
 
 })
