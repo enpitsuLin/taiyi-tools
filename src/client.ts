@@ -97,7 +97,7 @@ export interface ClientOptions {
    * 请求超时，单位：毫秒
    * @default 14000
    */
-  sendTimeout?: number
+  timeout?: number
 
   retry?: number | ((failureCount: number, error: Error) => boolean) | RetryOptions
 }
@@ -179,7 +179,7 @@ export class Client extends EventTarget {
     assert(this.chainId.length === 32, 'invalid chain id')
     this.addressPrefix = options.addressPrefix || DEFAULT_ADDRESS_PREFIX
 
-    this.sendTimeout = options.sendTimeout || 14 * 1000
+    this.sendTimeout = options.timeout ?? 14 * 1000
 
     this.baiyujing = new BaiYuJingAPI(this)
     this.retryOptions = defu(typeof options.retry === 'object' ? options.retry : { retry: options.retry }, defaultRetryOptions)
