@@ -23,6 +23,9 @@ importers:
       bytebuffer:
         specifier: ^5.0.1
         version: 5.0.1
+      defu:
+        specifier: ^6.1.4
+        version: 6.1.4
     devDependencies:
       '@types/assert':
         specifier: ^1.5.11

@@ -1,5 +1,3 @@
-/// <reference types="vitest/globals" />
-
 import ByteBuffer from 'bytebuffer'
 import { inspect } from 'util'
 
@@ -70,7 +68,7 @@ describe('crypto', function () {
   it('should sign and verify', function () {
     const message = randomBytes(32)
     const signature = testKey.sign(message)
-    console.log(signature)
+
     assert(testKey.createPublic().verify(message, signature))
     signature.data[3] = 0x42
     assert(!testKey.createPublic().verify(message, signature))

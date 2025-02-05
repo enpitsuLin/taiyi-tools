@@ -1,5 +1,6 @@
 {
   "compilerOptions": {
+    "composite": true,
     "target": "ESNext",
     "module": "Preserve",
     "moduleResolution": "Bundler",
@@ -15,16 +16,17 @@
     "forceConsistentCasingInFileNames": true,
     "allowImportingTsExtensions": true,
     "noImplicitOverride": true,
-    "noEmit": true,
+    "emitDeclarationOnly": true,
+    "types": [
+      "vitest/globals"
+    ]
   },
+  "include": [
+    "src/**/*.ts",
+    "test/**/*.spec.ts"
+  ],
   "exclude": [
     "node_modules",
     "dist",
-    "**/*.spec.ts"
-  ],
-  "references": [
-    {
-      "path": "./tsconfig.spec.json"
-    }
   ]
 }
