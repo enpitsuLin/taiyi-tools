@@ -516,7 +516,7 @@ describe('Tiandao', () => {
   })
 
   it('should get contract source code', async () => {
-    const code = await client.baiyujing.getContractSourceCode('yantongshi.lua')
-    expect(code).toMatchInlineSnapshot(`""`)
+    const code = await client.baiyujing.getContractSourceCode('contract.cmds.std.look')
+    await expect(code).toMatchFileSnapshot('./__snapshots__/get_contract_source_code.snap')
   })
 })
