@@ -1,9 +1,10 @@
 import { bytesToHex, hexToBytes } from '@noble/hashes/utils'
-import { version } from '../package.json'
 import assert from 'assert'
 import defu from 'defu'
-import { utils } from './utils'
+import { version } from '../package.json'
 import { BaiYuJingAPI } from './helper/baiyujing'
+import { Blockchain } from './helper/blockchain'
+import { waitForEvent } from './utils'
 
 /**
  * 包版本
@@ -170,6 +171,7 @@ export class Client extends EventTarget {
 
   //#region Helper
   public readonly baiyujing: BaiYuJingAPI
+  public readonly blockchain: Blockchain
   //#endregion
 
   constructor(url: string, options: ClientOptions = {}) {
@@ -182,6 +184,8 @@ export class Client extends EventTarget {
     this.sendTimeout = options.timeout ?? 14 * 1000
 
     this.baiyujing = new BaiYuJingAPI(this)
+    this.blockchain = new Blockchain(this)
+
     this.retryOptions = defu(typeof options.retry === 'object' ? options.retry : { retry: options.retry }, defaultRetryOptions)
     if (options.autoConnect === undefined || options.autoConnect === true) {
       this.connect()
@@ -229,7 +233,7 @@ export class Client extends EventTarget {
       this.socket.readyState !== WebSocket.CLOSING
     ) {
       this.socket.close()
-      await utils.waitForEvent(this, 'close')
+      await waitForEvent(this, 'close')
     }
   }
 

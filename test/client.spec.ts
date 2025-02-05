@@ -1,4 +1,4 @@
-import { Client, ClientMessageError, utils } from './../src'
+import { Client, ClientMessageError, waitForEvent } from './../src'
 
 describe('client', () => {
   vi.setConfig({
@@ -20,7 +20,7 @@ describe('client', () => {
   it('should reconnect on disconnection', async function () {
     //@ts-expect-error test usage
     client.socket!.close()
-    await utils.waitForEvent(client, 'open')
+    await waitForEvent(client, 'open')
   })
 
   it('should flush call buffer on reconnection', async function () {
@@ -65,7 +65,7 @@ describe('client', () => {
   })
 
   it('should handle garbled data from server', async function () {
-    const errorPromise = utils.waitForEvent<CustomEvent<ClientMessageError>>(client, 'error')
+    const errorPromise = waitForEvent<CustomEvent<ClientMessageError>>(client, 'error')
     //@ts-expect-error test usage
     client.onMessage({ data: 'this}}is notJSON!' })
     const error = await errorPromise
