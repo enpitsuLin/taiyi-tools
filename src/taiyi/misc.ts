@@ -39,7 +39,7 @@ export interface ChainProperties {
 }
 
 /**
- * Node state.
+ * 节点状态
  */
 export interface DynamicGlobalProperties {
     id: number

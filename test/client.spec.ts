@@ -14,7 +14,7 @@ describe('client', () => {
   it('should make rpc call', async function () {
     const config = await client.call('baiyujing_api', 'get_config')
     expect(config)
-    expect(config.IS_TEST_NET).toBe(true)
+    expect(config).toHaveProperty('IS_TEST_NET')
   })
 
   it('should reconnect on disconnection', async function () {

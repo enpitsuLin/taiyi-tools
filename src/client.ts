@@ -3,6 +3,7 @@ import { version } from '../package.json'
 import assert from 'assert'
 import defu from 'defu'
 import { utils } from './utils'
+import { BaiYuJingAPI } from './helper/baiyujing'
 
 /**
  * 包版本
@@ -167,6 +168,10 @@ export class Client extends EventTarget {
   sendTimeout: number
   //#endregion
 
+  //#region Helper
+  public readonly baiyujing: BaiYuJingAPI
+  //#endregion
+
   constructor(url: string, options: ClientOptions = {}) {
     super()
     this.url = url
@@ -176,6 +181,7 @@ export class Client extends EventTarget {
 
     this.sendTimeout = options.sendTimeout || 14 * 1000
 
+    this.baiyujing = new BaiYuJingAPI(this)
     this.retryOptions = defu(typeof options.retry === 'object' ? options.retry : { retry: options.retry }, defaultRetryOptions)
     if (options.autoConnect === undefined || options.autoConnect === true) {
       this.connect()
@@ -302,7 +308,7 @@ export class Client extends EventTarget {
     }
   }
 
-  public call(api: string, method: string, params: any[] = []): Promise<any> {
+  public call<Response = any>(api: string, method: string, params: any[] = []): Promise<Response> {
     const request: RPCCall = {
       id: ++this.seqNo,
       method: 'call',
@@ -312,7 +318,7 @@ export class Client extends EventTarget {
     return this.send(request)
   }
 
-  private send(request: RPCRequest): Promise<any> {
+  private send<T = any>(request: RPCRequest): Promise<T> {
     let signal: AbortSignal | undefined
     if (this.sendTimeout > 0) {
       signal = AbortSignal.timeout(this.sendTimeout)
@@ -323,7 +329,7 @@ export class Client extends EventTarget {
       }
     }
 
-    const { promise, reject, resolve } = Promise.withResolvers<any>()
+    const { promise, reject, resolve } = Promise.withResolvers<T>()
 
     this.pending.set(request.id, { request, resolve, reject, signal })
     if (this.isConnected()) {
