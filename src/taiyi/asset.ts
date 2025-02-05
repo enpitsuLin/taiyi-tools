@@ -1,9 +1,9 @@
 import assert from 'assert'
 
-export interface TAIAsset {
+export interface FaiAsset {
     amount: string | number,
     precision: number,
-    nai: string
+    fai: string
 }
 
 /**
@@ -32,6 +32,15 @@ export class Asset {
             throw new Error(`Invalid asset amount: ${amountString}`)
         }
         return new Asset(amount, symbol as AssetSymbol)
+    }
+
+    public static fromTAIAsset(asset: FaiAsset) {
+        const value = typeof asset.amount === 'string' ? Number.parseFloat(asset.amount) : asset.amount
+        if (!Number.isFinite(value)) {
+            throw new Error(`Invalid asset amount: ${asset.amount}`)
+        }
+        const symbol = this.getSymbolFromFai(asset.fai)
+        return new Asset(value, symbol)
     }
 
     /**
@@ -90,6 +99,36 @@ export class Asset {
     }
 
     /**
+     * 返回 fai 表示
+     */
+    public toFai(): string {
+        switch (this.symbol) {
+            case 'YANG':
+                return "@@000000021"
+            case 'QI':
+                return "@@000000037"
+            case 'GOLD':
+            case 'FOOD':
+            case 'WOOD':
+            case 'FABR':
+            case 'HERB':
+            default:
+                throw new Error(`Not implemented symbol: ${this.symbol}`)
+        }
+    }
+
+    static getSymbolFromFai(fai: string): AssetSymbol {
+        switch (fai) {
+            case '@@000000021':
+                return "YANG"
+            case '@@000000037':
+                return "QI"
+            default:
+                throw new Error(`Not implemented fai: ${fai}`)
+        }
+    }
+
+    /**
      * 返回资产的字符串表示，例如 `42.000 QI`。
      */
     public toString(): string {
@@ -133,10 +172,15 @@ export class Asset {
     }
 
     /**
-     * 用于 JSON 序列化，与 toString() 相同。
+     * 用于 JSON 序列化
      */
     public toJSON(): string {
-        return this.toString()
+        const protocol = {
+            amount: this.amount,
+            precision: this.getPrecision(),
+            fai: this.toFai()
+        }
+        return JSON.stringify(protocol)
     }
 
 }

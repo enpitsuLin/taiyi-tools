@@ -79,58 +79,44 @@ export interface Account {
   active: Authority
   posting: Authority
   memo_key: string;
+  json_metadata: string;
   proxy: string;
-  
+
+  last_owner_update: string
   last_account_update: string;
   created: string;
   recovery_account: string;
   last_account_recovery: string;
-  
+
   can_adore: boolean;
 
-  // 使用 Asset 类型替代之前的内联对象定义
-  balance: Asset;
-  reward_yang_balance: Asset;
-  reward_qi_balance: Asset;
-  reward_feigang_balance: Asset;
-  qi: Asset;
-  delegated_qi: Asset;
-  received_qi: Asset;
-  qi_withdraw_rate: Asset;
-  
+  balance: Asset | string;
+  reward_yang_balance: Asset | string;
+  reward_qi_balance: Asset | string;
+  reward_feigang_balance: Asset | string;
+  qi: Asset | string;
+  delegated_qi: Asset | string;
+  received_qi: Asset | string;
+  qi_withdraw_rate: Asset | string;
+
   next_qi_withdrawal_time: string;
   withdrawn: number;
   to_withdraw: number;
   withdraw_routes: number;
-  
+
   proxied_vsf_adores: number[];
   simings_adored_for: number;
+
+  gold: Asset | string;
+  food: Asset | string;
+  wood: Asset | string;
+  fabric: Asset | string;
+  herb: Asset | string;
+  qi_balance: Asset | string;
 }
 
 export interface ExtendedAccount extends Account {
-  /**
-   * Convert vesting_shares to vesting steem.
-   */
-  vesting_balance: string | Asset
-  reputation: string | number // share_type
-  /**
-   * Transfer to/from vesting.
-   */
-  transfer_history: any[] // map<uint64_t,applied_operation>
-  /**
-   * Limit order / cancel / fill.
-   */
-  market_history: any[] // map<uint64_t,applied_operation>
-  post_history: any[] // map<uint64_t,applied_operation>
-  vote_history: any[] // map<uint64_t,applied_operation>
-  other_history: any[] // map<uint64_t,applied_operation>
-  witness_votes: string[] // set<string>
-  tags_usage: string[] // vector<pair<string,uint32_t>>
-  guest_bloggers: string[] // vector<pair<account_name_type,uint32_t>>
-  open_orders?: any[] // optional<map<uint32_t,extended_limit_order>>
-  comments?: any[] /// permlinks for this user // optional<vector<string>>
-  blog?: any[] /// blog posts for this user // optional<vector<string>>
-  feed?: any[] /// feed posts for this user // optional<vector<string>>
-  recent_replies?: any[] /// blog posts for this user // optional<vector<string>>
-  recommended?: any[] /// posts recommened for this user // optional<vector<string>>
+  transfer_history: any[]
+  other_history: any[]
+  siming_adores: any[]
 }

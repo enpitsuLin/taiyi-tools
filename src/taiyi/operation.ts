@@ -75,6 +75,16 @@ export interface Operation {
   1: Record<string, any>
 }
 
+export interface AppliedOperation {
+  trx_id: string
+  block: number
+  trx_in_block: number
+  op_in_trx: number
+  virtual_op: number
+  timestamp: string
+  op: Operation
+}
+
 export interface AccountCreateOperation extends Operation {
   0: 'account_create'
   1: {
