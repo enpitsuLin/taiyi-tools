@@ -13,8 +13,8 @@ export interface SignedTransaction extends Transaction {
 }
 
 export interface TransactionConfirmation {
-  id: string
-  block_num: number
-  trx_num: number
+  id: string // transaction_id_type
+  block_num: number // int32_t
+  trx_num: number // int32_t
   expired: boolean
 }

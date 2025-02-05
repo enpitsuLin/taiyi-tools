@@ -1,7 +1,7 @@
-import type { PublicKey } from "./crypto"
-import type { Authority } from "./taiyi/account"
-import type { Asset } from "./taiyi/asset"
-import type { ChainProperties } from "./taiyi/misc"
+import type { PublicKey } from "../crypto"
+import type { Authority } from "./account"
+import type { Asset } from "./asset"
+import type { ChainProperties } from "./misc"
 
 export type OperationName =
   | "account_create"           //0

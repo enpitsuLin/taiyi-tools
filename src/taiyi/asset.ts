@@ -1,58 +1,23 @@
-/**
- * @file Steem asset type definitions and helpers.
- * @author Johan Nordberg <code@johan-nordberg.com>
- * @license
- * Copyright (c) 2017 Johan Nordberg. All Rights Reserved.
- *
- * Redistribution and use in source and binary forms, with or without modification,
- * are permitted provided that the following conditions are met:
- *
- *  1. Redistribution of source code must retain the above copyright notice, this
- *     list of conditions and the following disclaimer.
- *
- *  2. Redistribution in binary form must reproduce the above copyright notice,
- *     this list of conditions and the following disclaimer in the documentation
- *     and/or other materials provided with the distribution.
- *
- *  3. Neither the name of the copyright holder nor the names of its contributors
- *     may be used to endorse or promote products derived from this software without
- *     specific prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
- * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
- * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.
- * IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT,
- * INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
- * BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
- * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
- * LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE
- * OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
- * OF THE POSSIBILITY OF SUCH DAMAGE.
- *
- * You acknowledge that this software is not designed, licensed or intended for use
- * in the design, construction, operation or maintenance of any military facility.
- */
-
 import assert from 'assert'
 
-export interface SMTAsset {
+export interface TAIAsset {
     amount: string | number,
     precision: number,
     nai: string
 }
 
 /**
- * Asset symbol string.
+ * 资产 symbol
  */
 export type AssetSymbol = 'YANG' | 'YIN' | 'QI' | 'GOLD' | 'FOOD' | 'WOOD' | 'FABR' | 'HERB'
 
 /**
- * Class representing a steem asset, e.g. `1.000 STEEM` or `12.112233 VESTS`.
+ * 表示太乙资产的类，例如 `1.000 QI` 或 `12.112233 YANG`。
  */
 export class Asset {
 
     /**
-     * Create a new Asset instance from a string, e.g. `42.000 STEEM`.
+     * 从字符串创建一个 Asset 实例，例如 `42.000 QI`。
      */
     public static fromString(string: string, expectedSymbol?: AssetSymbol) {
         const [amountString, symbol] = string.split(' ')
@@ -70,9 +35,8 @@ export class Asset {
     }
 
     /**
-     * Convenience to create new Asset.
-     * @param symbol Symbol to use when created from number. Will also be used to validate
-     *               the asset, throws if the passed value has a different symbol than this.
+     * 创建新的 Asset。
+     * @param symbol 创建时使用的 symbol。也会用于验证资产，如果传递的值具有不同的 symbol 则会抛出错误。
      */
     public static from(value: string | Asset | number, symbol?: AssetSymbol) {
         if (value instanceof Asset) {
@@ -90,7 +54,7 @@ export class Asset {
     }
 
     /**
-     * Return the smaller of the two assets.
+     * 返回两个资产中较小的一个。
      */
     public static min(a: Asset, b: Asset) {
         assert(a.symbol === b.symbol, 'can not compare assets with different symbols')
@@ -98,7 +62,7 @@ export class Asset {
     }
 
     /**
-     * Return the larger of the two assets.
+     * 返回两个资产中较大的一个。
      */
     public static max(a: Asset, b: Asset) {
         assert(a.symbol === b.symbol, 'can not compare assets with different symbols')
@@ -108,7 +72,7 @@ export class Asset {
     constructor(public readonly amount: number, public readonly symbol: AssetSymbol) { }
 
     /**
-     * Return asset precision.
+     * 返回资产的精度。
      */
     public getPrecision(): number {
         switch (this.symbol) {
@@ -126,14 +90,14 @@ export class Asset {
     }
 
     /**
-     * Return a string representation of this asset, e.g. `42.000 STEEM`.
+     * 返回资产的字符串表示，例如 `42.000 QI`。
      */
     public toString(): string {
         return `${this.amount.toFixed(this.getPrecision())} ${this.symbol}`
     }
 
     /**
-     * Return a new Asset instance with amount added.
+     * 返回一个新实例为两个资产相加。
      */
     public add(amount: Asset | string | number): Asset {
         const other = Asset.from(amount, this.symbol)
@@ -142,7 +106,7 @@ export class Asset {
     }
 
     /**
-     * Return a new Asset instance with amount subtracted.
+     * 返回一个新实例为两个资产相减。
      */
     public subtract(amount: Asset | string | number): Asset {
         const other = Asset.from(amount, this.symbol)
@@ -151,7 +115,7 @@ export class Asset {
     }
 
     /**
-     * Return a new Asset with the amount multiplied by factor.
+     * 返回一个新实例为两个资产相乘。
      */
     public multiply(factor: Asset | string | number): Asset {
         const other = Asset.from(factor, this.symbol)
@@ -160,7 +124,7 @@ export class Asset {
     }
 
     /**
-     * Return a new Asset with the amount divided.
+     * 返回一个新实例为两个资产相除。
      */
     public divide(divisor: Asset | string | number): Asset {
         const other = Asset.from(divisor, this.symbol)
@@ -169,7 +133,7 @@ export class Asset {
     }
 
     /**
-     * For JSON serialization, same as toString().
+     * 用于 JSON 序列化，与 toString() 相同。
      */
     public toJSON(): string {
         return this.toString()
@@ -180,20 +144,20 @@ export class Asset {
 export type PriceType = Price | { base: Asset | string, quote: Asset | string }
 
 /**
- * Represents quotation of the relative value of asset against another asset.
- * Similar to 'currency pair' used to determine value of currencies.
+ * 表示一个资产相对于另一个资产的相对价值报价。
+ * 类似于用于确定货币价值的"货币对"。
  *
- *  For example:
- *  1 EUR / 1.25 USD where:
- *  1 EUR is an asset specified as a base
- *  1.25 USD us an asset specified as a qute
- *
- *  can determine value of EUR against USD.
+ * 例如：
+ * 1 EUR / 1.25 USD，其中：
+ * 1 EUR 是作为基准(base)的资产
+ * 1.25 USD 是作为报价(quote)的资产
+ * 
+ * 可以用来确定 EUR 对 USD 的价值。
  */
 export class Price {
 
     /**
-     * Convenience to create new Price.
+     * 创建新的 Price。
      */
     public static from(value: PriceType) {
         if (value instanceof Price) {
@@ -204,12 +168,10 @@ export class Price {
     }
 
     /**
-     * @param base  - represents a value of the price object to be expressed relatively to quote
-     *                asset. Cannot have amount == 0 if you want to build valid price.
-     * @param quote - represents an relative asset. Cannot have amount == 0, otherwise
-     *                asertion fail.
+     * @param base  - 表示价格对象的值相对于报价资产的值。不能有 amount == 0，否则断言失败。
+     * @param quote - 表示相对资产。不能有 amount == 0，否则断言失败。
      *
-     * Both base and quote shall have different symbol defined.
+     * base 和 quote 必须具有不同的 symbol 定义。
      */
     constructor(public readonly base: Asset, public readonly quote: Asset) {
         assert(base.amount !== 0 && quote.amount !== 0, 'base and quote assets must be non-zero')
@@ -217,15 +179,15 @@ export class Price {
     }
 
     /**
-     * Return a string representation of this price pair.
+     * 返回这个价格对的字符串表示。
      */
     public toString() {
         return `${this.base}:${this.quote}`
     }
 
     /**
-     * Return a new Asset with the price converted between the symbols in the pair.
-     * Throws if passed asset symbol is not base or quote.
+     * 返回一个新实例为价格在两个符号之间转换。
+     * 如果传递的资产符号不是 base 或 quote，则抛出错误。
      */
     public convert(asset: Asset) {
         if (asset.symbol === this.base.symbol) {
