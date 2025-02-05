@@ -134,7 +134,6 @@ const BinarySerializer = (size?: number) => {
   }
 }
 
-const VariableBinarySerializer = BinarySerializer()
 
 const FlatMapSerializer = (keySerializer: Serializer, valueSerializer: Serializer) => {
   return (buffer: ByteBuffer, data: Array<[any, any]>) => {
@@ -288,7 +287,7 @@ const OperationSerializers: Record<Operation['0'], Serializer> = {
   custom: OperationDataSerializer(12, [
     ['required_auths', ArraySerializer(StringSerializer)],
     ['id', UInt16Serializer],
-    ['data', StringSerializer],
+    ['data', BinarySerializer()],
   ]),
   custom_json: OperationDataSerializer(13, [
     ['required_auths', ArraySerializer(StringSerializer)],
@@ -435,7 +434,7 @@ const OperationSerializers: Record<Operation['0'], Serializer> = {
     ['resources', StringSerializer],
   ]),
 
-  nfa_trasfer: OperationDataSerializer(34, [
+  nfa_transfer: OperationDataSerializer(34, [
     ['from', StringSerializer],
     ['to', StringSerializer],
     ['token_id', UInt32Serializer],
