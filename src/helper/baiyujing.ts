@@ -1,10 +1,12 @@
 import type { Client } from "../client";
 import type { Account, ExtendedAccount } from "../taiyi/account";
+import type { Actor, ActorTalentRule } from "../taiyi/actor";
 import type { BlockHeader, SignedBlock } from "../taiyi/block";
 import type { ChainProperties, DynamicGlobalProperties } from "../taiyi/misc";
 import type { AppliedOperation } from "../taiyi/operation";
 import type { RewardFund } from "../taiyi/rewards";
 import type { ScheduleSiming, Siming } from "../taiyi/siming";
+import type { TianDaoProperties, Zone, ZoneType } from "../taiyi/tiandao";
 import type { SignedTransaction, Transaction } from "../taiyi/transcation";
 
 export class BaiYuJingAPI {
@@ -70,6 +72,8 @@ export class BaiYuJingAPI {
     return this.call<string[]>('get_key_references', [keys])
   }
 
+  //#region Account
+
   async getAccounts(names: string[]) {
     return this.call<ExtendedAccount[]>('get_accounts', [names])
   }
@@ -94,6 +98,11 @@ export class BaiYuJingAPI {
    */
   async getAccountHistory(accountName: string, start: number, limit: number) {
     return this.call<unknown[]>('get_account_history', [accountName, start, limit])
+  }
+
+
+  async getAccountResources(accountName: string[]) {
+    return this.call<Pick<Account, 'fabric' | 'food' | 'gold' | 'herb' | 'wood'>[]>('get_account_resources', [accountName])
   }
 
   async getOwnerHistory(owner: string) {
@@ -137,15 +146,37 @@ export class BaiYuJingAPI {
     return this.call<number>('get_siming_count')
   }
   //#endregion
+
   //#region Transaction
 
   async getTransactionHex(tx: SignedTransaction) {
     return this.call<string>('get_transaction_hex', [tx])
   }
 
-  async getTransactionResults(trxId: string) {
-    return this.call<Transaction[]>('get_transaction_results', [trxId])
+  async getTransaction(trxId: string) {
+    return this.call<Transaction>('get_transaction', [trxId])
   }
+
+  async getTransactionResults(trxId: string) {
+    return this.call<unknown>('get_transaction_results', [trxId])
+  }
+
+  async getRequiredSignatures(trx: SignedTransaction, availableKeys: string[]) {
+    return this.call<string[]>('get_required_signatures', [trx, availableKeys])
+  }
+
+  async getPotentialSignatures(trx: SignedTransaction) {
+    return this.call<string[]>('get_potential_signatures', [trx])
+  }
+
+  async verifyAuthority(trx: SignedTransaction) {
+    return this.call<boolean>('verify_authority', [trx])
+  }
+
+  async verifyAccountAuthority(accountName: string, signers: string[]) {
+    return this.call<boolean>('verify_account_authority', [accountName, signers])
+  }
+
   //#endregion
 
 
@@ -180,4 +211,60 @@ export class BaiYuJingAPI {
 
   //#endregion
 
+  //#region Actor
+  async findActor(actorName: string) {
+    return this.call<Actor>('find_actor', [actorName])
+  }
+  async findActors(actorIds: number[]) {
+    return this.call<Actor[]>('find_actors', [actorIds])
+  }
+  async listActors(owner: string, limit: number) {
+    return this.call<Actor[]>('list_actors', [owner, limit])
+  }
+  async getActorHistory(actorName: string, start: number, limit: number) {
+    return this.call<unknown[]>('get_actor_history', [actorName, start, limit])
+  }
+  async listActorsBelowHealth(start: number, limit: number) {
+    return this.call<Actor[]>('list_actors_below_health', [start, limit])
+  }
+  async findActorTalentRules(rulesIds: number[]) {
+    return this.call<ActorTalentRule[]>('find_actor_talent_rules', [rulesIds])
+  }
+  async listActorsOnZone(zoneId: number, limit: number) {
+    return this.call<Actor[]>('list_actors_on_zone', [zoneId, limit])
+  }
+  //#endregion
+
+  //#region Tiandao
+
+  async getTiandaoProperties() {
+    return this.call<TianDaoProperties>('get_tiandao_properties')
+  }
+  async findZones(zoneIds: number[]) {
+    return this.call<Zone[]>('find_zones', [zoneIds])
+  }
+  async findZonesByName(zoneNames: string[]) {
+    return this.call<Zone[]>('find_zones_by_name', [zoneNames])
+  }
+  async listZones(owner: string, limit: number) {
+    return this.call<Zone[]>('list_zones', [owner, limit])
+  }
+  async listZonesByType(zoneType: ZoneType, limit: number) {
+    return this.call<Zone[]>('list_zones_by_type', [zoneType, limit])
+  }
+  async listToZonesByFrom(fromZoneName: string, limit: number) {
+    return this.call<Zone[]>('list_to_zones_by_from', [fromZoneName, limit])
+  }
+  async listFromZonesByTo(toZoneName: string, limit: number) {
+    return this.call<Zone[]>('list_from_zones_by_to', [toZoneName, limit])
+  }
+  async findWayToZone(fromZoneName: string, toZoneName: string) {
+    return this.call<{ way_points: string[] }>('find_way_to_zone', [fromZoneName, toZoneName])
+  }
+
+  async getContractSourceCode(contractName: string) {
+    return this.call<string>('get_contract_source_code', [contractName])
+  }
+
+  //#endregion
 }
