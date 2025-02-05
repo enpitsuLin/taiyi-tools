@@ -17,46 +17,52 @@ export type AssetSymbol = 'YANG' | 'YIN' | 'QI' | 'GOLD' | 'FOOD' | 'WOOD' | 'FA
 export class Asset {
 
     /**
-     * 从字符串创建一个 Asset 实例，例如 `42.000 QI`。
+     * 从字符串创建一个 Asset 实例，例如 `"42.000 QI"` 或者 `"4.2 \@@000000021"`。
      */
     public static fromString(string: string, expectedSymbol?: AssetSymbol) {
         const [amountString, symbol] = string.split(' ')
-        if (['YANG', 'YIN', 'QI', 'GOLD', 'FOOD', 'WOOD', 'FABR', 'HERB'].indexOf(symbol) === -1) {
-            throw new Error(`Invalid asset symbol: ${symbol}`)
+
+        let _symbol = symbol as AssetSymbol, isFai = false
+        // 字符串的 symbol 是 fai 表示
+        if (symbol.startsWith("@@")) {
+            _symbol = Asset.getSymbolFromFai(symbol)
+            isFai = true
         }
-        if (expectedSymbol && symbol !== expectedSymbol) {
-            throw new Error(`Invalid asset, expected symbol: ${expectedSymbol} got: ${symbol}`)
+
+        if (['YANG', 'YIN', 'QI', 'GOLD', 'FOOD', 'WOOD', 'FABR', 'HERB'].indexOf(_symbol) === -1) {
+            throw new Error(`Invalid asset symbol: ${_symbol}`)
+        }
+        if (expectedSymbol && _symbol !== expectedSymbol) {
+            throw new Error(`Invalid asset, expected symbol: ${expectedSymbol} got: ${_symbol}`)
         }
         const amount = Number.parseFloat(amountString)
         if (!Number.isFinite(amount)) {
             throw new Error(`Invalid asset amount: ${amountString}`)
         }
-        return new Asset(amount, symbol as AssetSymbol)
-    }
+        return new Asset(amount, _symbol, isFai)
 
-    public static fromTAIAsset(asset: FaiAsset) {
-        const value = typeof asset.amount === 'string' ? Number.parseFloat(asset.amount) : asset.amount
-        if (!Number.isFinite(value)) {
-            throw new Error(`Invalid asset amount: ${asset.amount}`)
-        }
-        const symbol = this.getSymbolFromFai(asset.fai)
-        return new Asset(value, symbol)
     }
 
     /**
      * 创建新的 Asset。
      * @param symbol 创建时使用的 symbol。也会用于验证资产，如果传递的值具有不同的 symbol 则会抛出错误。
      */
-    public static from(value: string | Asset | number, symbol?: AssetSymbol) {
+    public static from(value: string | Asset | number | FaiAsset, symbol?: AssetSymbol, isFai?: boolean) {
         if (value instanceof Asset) {
             if (symbol && value.symbol !== symbol) {
                 throw new Error(`Invalid asset, expected symbol: ${symbol} got: ${value.symbol}`)
             }
             return value
         } else if (typeof value === 'number' && Number.isFinite(value)) {
-            return new Asset(value, symbol || 'QI')
+            return new Asset(value, symbol || 'QI', isFai)
         } else if (typeof value === 'string') {
             return Asset.fromString(value, symbol)
+        } else if (typeof value === 'object' && 'amount' in value && 'precision' in value && 'fai' in value) {
+            const amount = typeof value.amount === 'string' ? Number.parseFloat(value.amount) : value.amount
+            if (!Number.isFinite(amount)) {
+                throw new Error(`Invalid asset amount: ${amount}`)
+            }
+            return new Asset(amount, Asset.getSymbolFromFai(value.fai), true)
         } else {
             throw new Error(`Invalid asset '${String(value)}'`)
         }
@@ -78,7 +84,11 @@ export class Asset {
         return a.amount > b.amount ? a : b
     }
 
-    constructor(public readonly amount: number, public readonly symbol: AssetSymbol) { }
+    constructor(
+        public readonly amount: number,
+        public readonly symbol: AssetSymbol,
+        public readonly isFai = false
+    ) { }
 
     /**
      * 返回资产的精度。
@@ -101,8 +111,8 @@ export class Asset {
     /**
      * 返回 fai 表示
      */
-    public toFai(): string {
-        switch (this.symbol) {
+    static getFaiFromSymbol(symbol: string): string {
+        switch (symbol) {
             case 'YANG':
                 return "@@000000021"
             case 'QI':
@@ -113,7 +123,7 @@ export class Asset {
             case 'FABR':
             case 'HERB':
             default:
-                throw new Error(`Not implemented symbol: ${this.symbol}`)
+                throw new Error(`Not implemented symbol: ${symbol}`)
         }
     }
 
@@ -128,12 +138,6 @@ export class Asset {
         }
     }
 
-    /**
-     * 返回资产的字符串表示，例如 `42.000 QI`。
-     */
-    public toString(): string {
-        return `${this.amount.toFixed(this.getPrecision())} ${this.symbol}`
-    }
 
     /**
      * 返回一个新实例为两个资产相加。
@@ -172,15 +176,24 @@ export class Asset {
     }
 
     /**
+     * 返回资产的字符串表示，例如 `42.000 QI`。
+     */
+    public toString(): string {
+        return `${this.amount.toFixed(this.getPrecision())} ${this.symbol}`
+    }
+
+    /**
      * 用于 JSON 序列化
      */
     public toJSON(): string {
-        const protocol = {
-            amount: this.amount,
-            precision: this.getPrecision(),
-            fai: this.toFai()
+        if (this.isFai) {
+            return JSON.stringify({
+                amount: this.amount,
+                precision: this.getPrecision(),
+                fai: Asset.getFaiFromSymbol(this.symbol)
+            })
         }
-        return JSON.stringify(protocol)
+        return this.toString()
     }
 
 }

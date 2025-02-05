@@ -3,6 +3,7 @@ import { PublicKey } from '../crypto'
 import { Asset } from './asset'
 import { HexBuffer } from './misc'
 import type { Operation } from './operation'
+import { bytesToHex } from '@noble/hashes/utils'
 
 export type Serializer = (buffer: ByteBuffer, data: any) => void
 
@@ -63,12 +64,28 @@ const StaticVariantSerializer = (itemSerializers: Serializer[]) => {
  * @note 对于大于 `2^53-1/10^precision` 的数额会失去精度。在实际使用中不应成为问题。
  */
 const AssetSerializer = (buffer: ByteBuffer, data: Asset | string | number) => {
+
   const asset = Asset.from(data)
+
   const precision = asset.getPrecision()
-  buffer.writeInt64(Math.round(asset.amount * Math.pow(10, precision)))
+  if (asset.isFai) {
+    // @ts-expect-error
+    const LongConstructor = ByteBuffer.Long as typeof Long
+    // const faiNumPart = Number.parseInt(Asset.getFaiFromSymbol(asset.symbol).slice(2))
+
+    // const fai = Math.floor(faiNumPart / 10)
+    const towrite = LongConstructor.fromString(asset.amount.toString())
+    buffer.writeInt64(towrite)
+    // const write32 = (fai << 5) + 16 + asset.getPrecision() 
+    // buffer.writeUint32(write32)
+  } else {
+    buffer.writeInt64(Math.round(asset.amount * Math.pow(10, precision)))
+  }
+
   buffer.writeUint8(precision)
-  for (let i = 0; i < 7; i++) {
-    buffer.writeUint8(asset.symbol.charCodeAt(i) || 0)
+  buffer.append(asset.symbol.toUpperCase(), 'binary')
+  for (let i = 0; i < 7 - asset.symbol.length; i++) {
+    buffer.writeUint8(0)
   }
 }
 

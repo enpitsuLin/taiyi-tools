@@ -202,7 +202,7 @@ describe("account information", () => {
 
     const history = await client.baiyujing.getAccountHistory('initminer', -1, 1)
 
-    expect(history).toMatchFileSnapshot('./__snapshots__/account_history.snap')
+    await expect(history).toMatchFileSnapshot('./__snapshots__/account_history.snap')
   })
 })
 

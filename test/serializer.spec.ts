@@ -1,4 +1,4 @@
-import { bytesToHex } from '@noble/hashes/utils'
+import { bytesToHex, hexToBytes } from '@noble/hashes/utils'
 import { Types, type Serializer, HexBuffer } from './../src'
 import ByteBuffer from 'bytebuffer'
 
@@ -32,7 +32,7 @@ describe('serializers', function () {
     const data = HexBuffer.from('026400c800')
     const r1 = serialize(Types.Binary(), HexBuffer.from([0x80, 0x00, 0x80]))
     assert.equal(r1, '03800080')
-    const r2 = serialize(Types.Binary(), HexBuffer.from(Buffer.from('026400c800', 'hex')))
+    const r2 = serialize(Types.Binary(), HexBuffer.from(hexToBytes('026400c800')))
     assert.equal(r2, '05026400c800')
     const r3 = serialize(Types.Binary(5), HexBuffer.from(data))
     assert.equal(r3, '026400c800')
