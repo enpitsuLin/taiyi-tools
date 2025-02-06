@@ -1,7 +1,6 @@
 import type { Operation } from '../src'
 import { randomBytes } from 'crypto'
 import * as fs from 'fs/promises'
-import { hexToBytes } from '@noble/hashes/utils'
 import { Client, PrivateKey } from '../src'
 
 const NUM_TEST_ACCOUNTS = 1
@@ -104,7 +103,14 @@ describe('broadcast', () => {
       [
         'create_actor',
         {
-          fee: '1.000000 QI',
+          // both work
+          // fee: '1 @@000000037',
+          // fee: '1.000000 QI',
+          fee: {
+            amount: 1,
+            precision: 6,
+            fai: '@@000000037',
+          },
           creator: 'sifu',
           family_name: `ctaiyi-${randomString(2)}`,
           last_name: `ctaiyi-${randomString(2)}`,

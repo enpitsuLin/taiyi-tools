@@ -17,8 +17,6 @@ export type AssetSymbol = 'YANG' | 'YIN' | 'QI' | 'GOLD' | 'FOOD' | 'WOOD' | 'FA
 export class Asset {
   /**
    * 从字符串创建一个 Asset 实例，例如 `42.000 QI` 或者 `4.2 \@@000000021`。
-   *
-   * 如果使用传统字符串表示则需要精度表示准确，而 Fai 表示则不需要
    */
   public static fromString(string: string, expectedSymbol?: AssetSymbol) {
     const [amountString, symbol] = string.split(' ')

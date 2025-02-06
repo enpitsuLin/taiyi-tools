@@ -83,7 +83,7 @@ export class BroadcastAPI {
   /**
    * 在测试网络上创建新账户
    * @param options 新账户选项
-   * @param key 账户创建者的私有活动密钥
+   * @param key 账户创建者的私钥
    */
   public async createTestAccount(options: CreateAccountOptions, key: PrivateKey) {
     assert(Object.prototype.hasOwnProperty.call(globalThis, 'it'), 'helper to be used only for mocha tests')
