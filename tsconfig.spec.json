@@ -5,21 +5,21 @@
     "module": "Preserve",
     "moduleResolution": "Bundler",
     "resolveJsonModule": true,
-    "esModuleInterop": false,
-    "allowSyntheticDefaultImports": true,
-    "skipLibCheck": true,
+    "types": [
+      "vitest/globals"
+    ],
+    "allowImportingTsExtensions": true,
     "allowJs": true,
     "checkJs": true,
     "strict": true,
-    "verbatimModuleSyntax": true,
-    "isolatedModules": true,
-    "forceConsistentCasingInFileNames": true,
-    "allowImportingTsExtensions": true,
     "noImplicitOverride": true,
     "emitDeclarationOnly": true,
-    "types": [
-      "vitest/globals"
-    ]
+    "allowSyntheticDefaultImports": true,
+    "esModuleInterop": false,
+    "forceConsistentCasingInFileNames": true,
+    "isolatedModules": true,
+    "verbatimModuleSyntax": true,
+    "skipLibCheck": true
   },
   "include": [
     "src/**/*.ts",
@@ -27,6 +27,6 @@
   ],
   "exclude": [
     "node_modules",
-    "dist",
+    "dist"
   ]
 }
