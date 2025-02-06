@@ -36,8 +36,8 @@ export class BaiYuJingAPI {
     return this.call<SignedBlock>('get_block', [blockNum])
   }
 
-  public async getOpsInBlock(blockNum: number) {
-    return this.call<AppliedOperation[]>('get_ops_in_block', [blockNum])
+  public async getOperations(blockNum: number, onlyVirtual: boolean = false) {
+    return this.call<AppliedOperation[]>('get_ops_in_block', [blockNum, onlyVirtual])
   }
 
   public getConfig() {

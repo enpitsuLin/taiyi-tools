@@ -44,7 +44,7 @@ describe('node and chain information', () => {
   })
 
   it('should get ops in block', async () => {
-    const ops = await client.baiyujing.getOpsInBlock(1)
+    const ops = await client.baiyujing.getOperations(1)
     expect(ops).toBeInstanceOf(Array)
     expect(ops.at(0)).toHaveProperty('op')
     expect(ops.at(0)!.op[0]).toBe('producer_reward')

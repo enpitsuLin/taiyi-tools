@@ -77,7 +77,6 @@ describe('broadcast', () => {
     const postingKey = PrivateKey.fromLogin(acc1.username, acc1.password, 'posting')
     const memoKey = PrivateKey.fromLogin(acc1.username, acc1.password, 'memo')
 
-
     expect(activeKey.toString())
       .toBe(PrivateKey.from('5JQ4D21dDeW5fe3fT5BwMaa7vhUyvCdZqet1knFbNuRXTBQAhdb').toString())
     expect(ownerKey.toString())

@@ -2,5 +2,8 @@
   "cSpell.words": [
     "baiyujing",
     "simings"
+  ],
+  "eslint.workingDirectories": [
+    "examples/watch-bot"
   ]
 }

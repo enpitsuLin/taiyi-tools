@@ -8,7 +8,6 @@ describe('blockchain', () => {
   const client = Client.testnet()
 
   const expectedIds = ['00000001e5317d927966320190e74cf5506d372a', '000000027657671fc0c4b840cb367d5d45eaff1a']
-  // eslint-disable-next-line unused-imports/no-unused-vars
   const expectedOps = [
     'producer_reward',
     'account_create',
@@ -30,17 +29,15 @@ describe('blockchain', () => {
 
   it('should stream blocks', async () => {
     // eslint-disable-next-line no-async-promise-executor
-    await new Promise<void>(async (resolve, reject) => {
+    const ids = await new Promise<string[]>(async (resolve, reject) => {
       const stream = client.blockchain.getBlockStream({ from: 1, to: 2 })
       const ids: string[] = []
-
       const reader = stream.getReader()
       try {
         while (true) {
           const { value: block, done } = await reader.read()
           if (done) {
-            expect(ids).toEqual(expectedIds)
-            resolve()
+            resolve(ids)
             break
           }
           ids.push(block.block_id)
@@ -53,6 +50,42 @@ describe('blockchain', () => {
         reader.releaseLock()
       }
     })
+    expect(ids).toEqual(expectedIds)
+  })
+
+  it('should yield operations', async () => {
+    const ops: string[] = []
+    for await (const operation of client.blockchain.getOperations({ from: 1, to: 100 })) {
+      ops.push(operation.op[0])
+    }
+    expect(ops).toEqual(expectedOps)
+  })
+
+  it('should stream operations', async () => {
+    // eslint-disable-next-line no-async-promise-executor
+    const ops = await new Promise<string[]>(async (resolve, reject) => {
+      const stream = client.blockchain.getOperationsStream({ from: 1, to: 100 })
+      const reader = stream.getReader()
+      const ops: string[] = []
+      try {
+        while (true) {
+          const { value: operation, done } = await reader.read()
+          if (done) {
+            resolve(ops)
+            break
+          }
+          ops.push(operation.op[0])
+        }
+      }
+      catch (error) {
+        reject(error)
+      }
+      finally {
+        reader.releaseLock()
+      }
+    })
+
+    expect(ops).toEqual(expectedOps)
   })
 
   it('should yield latest blocks', async () => {

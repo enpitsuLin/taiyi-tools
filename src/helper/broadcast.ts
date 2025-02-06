@@ -184,7 +184,7 @@ export class BroadcastAPI {
         ref_block_num,
         ref_block_prefix,
       },
-      transaction
+      transaction,
     )
   }
 

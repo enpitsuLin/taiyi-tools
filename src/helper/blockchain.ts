@@ -111,4 +111,23 @@ export class Blockchain {
   public getBlockStream(options?: BlockchainStreamOptions | number) {
     return iteratorStream(this.getBlocks(options))
   }
+
+  /**
+   * Return a asynchronous operation iterator, accepts same parameters as {@link getBlockNumbers}.
+   */
+  public async *getOperations(options?: BlockchainStreamOptions | number) {
+    for await (const num of this.getBlockNumbers(options)) {
+      const operations = await this.client.baiyujing.getOperations(num)
+      for (const operation of operations) {
+        yield operation
+      }
+    }
+  }
+
+  /**
+   * Return a stream of operations, accepts same parameters as {@link getBlockNumbers}.
+   */
+  public getOperationsStream(options?: BlockchainStreamOptions | number) {
+    return iteratorStream(this.getOperations(options))
+  }
 }
