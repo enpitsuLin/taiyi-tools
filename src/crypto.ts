@@ -159,14 +159,14 @@ export class PrivateKey {
   }
 
   /**
-   * Derive the public key for this private key.
+   * 从私钥派生公钥。
    */
   public createPublic(prefix?: string, isCompressed: boolean = true): PublicKey {
     return new PublicKey(secp.getPublicKey(this.key, isCompressed), prefix)
   }
 
   /**
-   * Return a WIF-encoded representation of the key.
+   * 返回一个 WIF 编码的密钥。
    */
   public toString() {
     const combined = concatBytes(NETWORK_ID, this.key)
@@ -174,8 +174,8 @@ export class PrivateKey {
   }
 
   /**
-   * Used by `utils.inspect` and `console.log` in node.js. Does not show the full key
-   * to get the full encoded key you need to explicitly call {@link toString}.
+   * 用于在 node.js 中 `utils.inspect` 和 `console.log`。不显示完整的密钥。
+   * 要获取完整的编码密钥，需要显式调用 {@link toString}。
    */
   public [Symbol.for('nodejs.util.inspect.custom')]() {
     const key = this.toString()

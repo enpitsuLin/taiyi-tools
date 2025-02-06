@@ -9,7 +9,7 @@ export interface AuthorityType {
 
 export class Authority implements AuthorityType {
   /**
-   * Convenience to create a new instance from PublicKey or authority object.
+   * 从公钥或权限对象创建新实例的便捷方法。
    */
   public static from(value: string | PublicKey | AuthorityType) {
     if (value instanceof Authority) {
