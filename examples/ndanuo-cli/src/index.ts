@@ -53,8 +53,13 @@ rl.on('line', async (input) => {
 
       private_key = privateKey
       console.log(`登录成功。${private_key.toString()}`)
-      console.log('请选择角色，命令是“play 角色名称|NFA序号”。')
+
+      const actors = await client.baiyujing.listActors(account_name, 100)
+      const actor_names = actors.map((actor, index) => `${index + 1} ——【${actor.name}】`).join('\n    ')
+      console.log(`当前账号${ANSI.YEL}${account_name}${ANSI.NOR}有以下角色：\n    ${ANSI.BLU}${actor_names}${ANSI.NOR}`)
+      console.log('请选择角色，命令是“play 角色名称 | NFA序号”。')
       console.log('如果要创建新角色，命令是“new 角色姓氏 角色名”。\n')
+
       rl.prompt()
       return
     }
@@ -147,20 +152,16 @@ rl.on('line', async (input) => {
       }
       else {
         const actor_name = args[1]
+        console.log(`开始游玩角色${ANSI.YEL}${actor_name}${ANSI.NOR}...`)
         const actor_info = await client.baiyujing.findActor(actor_name)
         if (actor_info === null) {
           console.warn(`角色${ANSI.YEL}${actor_name}${ANSI.NOR}不存在。\n`)
         }
         else {
           play_nfa = actor_info.nfa_id
-          const results = (await client.baiyujing.evalNfaActionWithStringArgs(play_nfa, 'welcome', '[]')).narrate_logs
-          let ss = ''
-          results.forEach((result) => {
-            ss += `${result}\n${ANSI.NOR}`
-          })
-          ss = ANSI.ansi(ss)
-          console.log(ss)
-
+          const res = await client.baiyujing.evalNfaActionWithStringArgs(play_nfa, 'welcome', '[]')
+          const results = res.narrate_logs
+          console.log(ANSI.ansi(results.join(`\n${ANSI.NOR}`)))
           console.log(`你好，${ANSI.YEL}${actor_name}${ANSI.NOR}，欢迎来到大傩世界。\n`)
         }
       }
