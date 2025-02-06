@@ -1,5 +1,3 @@
-import { PassThrough } from 'stream'
-
 export function waitForEvent<T>(target: EventTarget, event: string): Promise<T> {
   return new Promise<T>((resolve) => {
     target.addEventListener(
