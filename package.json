@@ -20,7 +20,7 @@
     "test": "vitest",
     "lint": "eslint .",
     "lint:fix": "eslint --fix .",
-    "prepare": "pnpm build"
+    "prepare": "simple-git-hooks && pnpm build"
   },
   "dependencies": {
     "@noble/hashes": "^1.7.1",
@@ -35,8 +35,16 @@
     "@types/assert": "^1.5.11",
     "@types/bytebuffer": "^5.0.49",
     "eslint": "^9.19.0",
+    "lint-staged": "^15.4.3",
+    "simple-git-hooks": "^2.11.1",
     "typescript": "^5.7.3",
     "unbuild": "^3.3.1",
     "vitest": "^3.0.5"
+  },
+  "simple-git-hooks": {
+    "pre-commit": "pnpm lint-staged"
+  },
+  "lint-staged": {
+    "*": "eslint --fix"
   }
 }
