@@ -1,7 +1,7 @@
 import type { PublicKey } from '../crypto'
 import type { Authority } from './account'
 import type { Asset } from './asset'
-import type { ChainProperties } from './misc'
+import type { ChainProperties, HexBuffer } from './misc'
 
 export type OperationName =
   | 'account_create' // 0
@@ -210,7 +210,7 @@ export interface CustomOperation extends Operation {
   1: {
     required_auths: Array<string>
     id: number
-    data: string
+    data: Uint8Array | HexBuffer
   }
 }
 
