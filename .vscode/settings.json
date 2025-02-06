@@ -4,6 +4,7 @@
     "simings"
   ],
   "eslint.workingDirectories": [
-    "examples/watch-bot"
+    "examples/watch-bot",
+    "examples/ndanuo-cli"
   ]
 }

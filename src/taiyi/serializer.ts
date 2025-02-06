@@ -356,10 +356,11 @@ const OperationSerializers: Record<Operation['0'], Serializer> = {
   ]),
 
   action_nfa: OperationDataSerializer(25, [
-    ['owner', StringSerializer],
-    ['token_id', UInt32Serializer],
+    ['caller', StringSerializer],
+    ['id', Int64Serializer],
     ['action', StringSerializer],
-    ['params', StringSerializer],
+    ['value_list', ArraySerializer(StringSerializer)],
+    ['extensions', ArraySerializer(StringSerializer)],
   ]),
   // #endregion
 

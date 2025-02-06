@@ -339,9 +339,11 @@ export interface ApproveNfaActiveOperation extends Operation {
 export interface ActionNfaOperation extends Operation {
   0: 'action_nfa'
   1: {
-    owner: string
-    token_id: number
-    memo: string
+    caller: string
+    id: number
+    action: string
+    value_list: string[]
+    extensions: unknown[]
   }
 }
 

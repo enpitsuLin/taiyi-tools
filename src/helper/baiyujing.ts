@@ -207,7 +207,7 @@ export class BaiYuJingAPI {
   }
 
   async evalNfaActionWithStringArgs(nfaId: number, action: string, json: string) {
-    return this.call<unknown>('eval_nfa_action_with_string_args', [nfaId, action, json])
+    return this.call<{ eval_result: LuaValue[], narrate_logs: string[], err: string }>('eval_nfa_action_with_string_args', [nfaId, action, json])
   }
 
   // #endregion

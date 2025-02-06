@@ -17,6 +17,11 @@
     "verbatimModuleSyntax": true,
     "skipLibCheck": true
   },
+  "references": [
+    {
+      "path": "./tsconfig.spec.json"
+    }
+  ],
   "exclude": [
     "node_modules",
     "dist",
