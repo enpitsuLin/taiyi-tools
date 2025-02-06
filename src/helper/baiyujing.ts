@@ -3,6 +3,7 @@ import type { Account, ExtendedAccount } from '../taiyi/account'
 import type { Actor, ActorTalentRule } from '../taiyi/actor'
 import type { BlockHeader, SignedBlock } from '../taiyi/block'
 import type { ChainProperties, DynamicGlobalProperties } from '../taiyi/misc'
+import type { LuaValue, Nfa } from '../taiyi/nfa'
 import type { AppliedOperation } from '../taiyi/operation'
 import type { RewardFund } from '../taiyi/rewards'
 import type { ScheduleSiming, Siming } from '../taiyi/siming'
@@ -182,31 +183,31 @@ export class BaiYuJingAPI {
 
   // #region NFA
   async find_nfa(nfaId: number) {
-    return this.call<unknown>('find_nfa', [nfaId])
+    return this.call<Nfa>('find_nfa', [nfaId])
   }
 
   async find_nfas(nfaIds: number[]) {
-    return this.call<unknown>('find_nfas', [nfaIds])
+    return this.call<Nfa[]>('find_nfas', [nfaIds])
   }
 
   async list_nfas(owner: string, limit: number) {
-    return this.call<unknown[]>('list_nfas', [owner, limit])
+    return this.call<Nfa[]>('list_nfas', [owner, limit])
   }
 
   async getNfaHistory(nfaId: number, limit: number, start: number) {
-    return this.call<unknown[]>('get_nfa_history', [nfaId, limit, start])
+    return this.call<[number, AppliedOperation][]>('get_nfa_history', [nfaId, limit, start])
   }
 
   async getNfaActionInfo(nfaId: number, action: string) {
     return this.call<{ exist: boolean, consequence: boolean }>('get_nfa_action_info', [nfaId, action])
   }
 
-  async evalNfaAction(nfaId: number, action: string[]) {
-    return this.call<unknown>('eval_nfa_action', [nfaId, action])
+  async evalNfaAction(nfaId: number, action: string, args: any[]) {
+    return this.call<{ eval_result: LuaValue[], narrate_logs: string[], err: string }>('eval_nfa_action', [nfaId, action, args])
   }
 
-  async evalNfaActionWithStringArgs(nfaId: number, action: string, args: string) {
-    return this.call<unknown>('eval_nfa_action_with_string_args', [nfaId, action, args])
+  async evalNfaActionWithStringArgs(nfaId: number, action: string, json: string) {
+    return this.call<unknown>('eval_nfa_action_with_string_args', [nfaId, action, json])
   }
 
   // #endregion

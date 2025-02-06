@@ -371,11 +371,11 @@ describe('transaction', () => {
 })
 
 describe('nfa', () => {
+  client.connect()
   it('should get nfa', async () => {
     const nfa = await client.baiyujing.find_nfa(1)
     expect(nfa).toHaveProperty('id')
     expect(nfa).toHaveProperty('symbol')
-    // @ts-expect-error TODO(@enpitsulin): Nfa 的类型
     expect(nfa.symbol).toBe('nfa.jingshu.book')
   })
 
@@ -392,20 +392,22 @@ describe('nfa', () => {
   })
 
   it('nfa action', async () => {
-    const info = await client.baiyujing.getNfaActionInfo(28, 'short')
+    const info = await client.baiyujing.getNfaActionInfo(22, 'short')
     expect(info).toHaveProperty('exist')
   })
 
-  // 等可以部署合约后可以通过本地测试网验证
-  it.skip('nfa eval action', async () => {
-    const info = await client.baiyujing.evalNfaAction(28, ['short'])
-    expect(info).toHaveProperty('exist')
+  it('nfa eval action', async () => {
+    const result = await client.baiyujing.evalNfaAction(22, 'short', [])
+
+    expect(result).toHaveProperty('eval_result', [{ type: 'lua_string', value: { v: '衍童石' } }])
+    expect(result).toHaveProperty('narrate_logs', [])
+    expect(result).toHaveProperty('err', '')
   })
 
-  // 同上
-  it.skip('nfa action with string args', async () => {
-    const info = await client.baiyujing.evalNfaActionWithStringArgs(28, 'short', '100')
-    expect(info).toHaveProperty('exist')
+  it('nfa action with string args', async () => {
+    // reference: https://github.com/hongzhongx/taiyi-contracts/blob/main/nfas/book/book.lua
+    const res = await client.baiyujing.evalNfaActionWithStringArgs(1, 'read', '["1"]')
+    expect(res).toHaveProperty('narrate_logs')
   })
 })
 
