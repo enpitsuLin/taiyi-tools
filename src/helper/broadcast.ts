@@ -196,7 +196,7 @@ export class BroadcastAPI {
    * @param operations 要发送的操作列表
    * @param key 用于签名交易的私钥
    */
-  public async sendOperations<Op extends Operation[]>(operations: Op, key: PrivateKey | PrivateKey[]): Promise<TransactionConfirmation> {
+  public async sendOperations(operations: Operation[], key: PrivateKey | PrivateKey[]): Promise<TransactionConfirmation> {
     const props = await this.client.baiyujing.getDynamicGlobalProperties()
 
     const ref_block_num = props.head_block_number & 0xFFFF
