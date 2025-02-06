@@ -4,7 +4,13 @@ import { PublicKey } from '../crypto'
 import { Asset } from './asset'
 import { HexBuffer } from './misc'
 
-export type Serializer = (buffer: ByteBuffer, data: any) => void
+export type Serializer<Type = any> = (buffer: ByteBuffer, data: Type) => void
+
+type UnionToIntersection<U> = (U extends any ? (k: U) => void : never) extends ((k: infer I) => void) ? I : never
+
+type CoverUnionSerializerToObject<S> = UnionToIntersection<S extends [infer K extends string, Serializer<infer V>]
+  ? { [P in K]: V }
+  : never>
 
 function VoidSerializer(_buffer: ByteBuffer) {
   throw new Error('Void can not be serialized')
@@ -51,7 +57,7 @@ function BooleanSerializer(buffer: ByteBuffer, data: boolean) {
 }
 
 function StaticVariantSerializer(itemSerializers: Serializer[]) {
-  return (buffer: ByteBuffer, data: [number, any]) => {
+  return (buffer: ByteBuffer, data: [id: number, item: any]) => {
     const [id, item] = data
     buffer.writeVarint32(id)
     itemSerializers[id](buffer, item)
@@ -117,8 +123,8 @@ function BinarySerializer(size?: number) {
   }
 }
 
-function FlatMapSerializer(keySerializer: Serializer, valueSerializer: Serializer) {
-  return (buffer: ByteBuffer, data: Array<[any, any]>) => {
+function FlatMapSerializer<K, V>(keySerializer: Serializer<K>, valueSerializer: Serializer<V>) {
+  return (buffer: ByteBuffer, data: Array<[K, V]>) => {
     buffer.writeVarint32(data.length)
     for (const [key, value] of data) {
       keySerializer(buffer, key)
@@ -127,8 +133,8 @@ function FlatMapSerializer(keySerializer: Serializer, valueSerializer: Serialize
   }
 }
 
-function ArraySerializer(itemSerializer: Serializer) {
-  return (buffer: ByteBuffer, data: any[]) => {
+function ArraySerializer<T>(itemSerializer: Serializer<T>) {
+  return (buffer: ByteBuffer, data: T[]) => {
     buffer.writeVarint32(data.length)
     for (const item of data) {
       itemSerializer(buffer, item)
@@ -136,11 +142,13 @@ function ArraySerializer(itemSerializer: Serializer) {
   }
 }
 
-function ObjectSerializer(keySerializers: Array<[string, Serializer]>) {
-  return (buffer: ByteBuffer, data: { [key: string]: any }) => {
+function ObjectSerializer<
+  const Definitions extends Array<[string, Serializer<any>]>,
+>(keySerializers: [...Definitions]): Serializer<CoverUnionSerializerToObject<Definitions[number]>> {
+  return (buffer: ByteBuffer, data: CoverUnionSerializerToObject<Definitions[number]>) => {
     for (const [key, serializer] of keySerializers) {
       try {
-        serializer(buffer, data[key])
+        serializer(buffer, (<any>data)[key])
       }
       catch (error: any) {
         error.message = `${key}: ${error.message}`
@@ -179,19 +187,17 @@ const ChainPropertiesSerializer = ObjectSerializer([
   ['sbd_interest_rate', UInt16Serializer],
 ])
 
-type DefinitionsToParams<Definitions extends Array<[string, Serializer]>> = {
-  [key in Definitions[number][0]]: Parameters<Definitions[number][1]>[1]
-}
-
-function OperationDataSerializer<const Definitions extends Array<[string, Serializer]>>(operationId: number, definitions: Definitions) {
-  const objectSerializer = ObjectSerializer(definitions)
-  return (buffer: ByteBuffer, data: DefinitionsToParams<Definitions>) => {
+function OperationDataSerializer<
+  const Definitions extends Array<[string, Serializer<any>]>,
+>(operationId: number, definitions: [...Definitions]) {
+  const objectSerializer = ObjectSerializer<Definitions>(definitions)
+  return (buffer: ByteBuffer, data: CoverUnionSerializerToObject<Definitions[number]>) => {
     buffer.writeVarint32(operationId)
     objectSerializer(buffer, data)
   }
 }
 
-const OperationSerializers: Record<Operation['0'], Serializer> = {
+const OperationSerializers = {
   account_create: OperationDataSerializer(0, [
     ['fee', AssetSerializer],
     ['creator', StringSerializer],
@@ -477,7 +483,7 @@ const OperationSerializers: Record<Operation['0'], Serializer> = {
     ['content', StringSerializer],
   ]),
   // #endregion
-}
+} satisfies Record<Operation['0'], Serializer>
 
 function OperationSerializer(buffer: ByteBuffer, operation: Operation) {
   const serializer = OperationSerializers[operation[0]]
@@ -485,7 +491,7 @@ function OperationSerializer(buffer: ByteBuffer, operation: Operation) {
     throw new Error(`No serializer for operation: ${operation[0]}`)
   }
   try {
-    serializer(buffer, operation[1])
+    serializer(buffer, operation[1] as any)
   }
   catch (error: any) {
     error.message = `${operation[0]}: ${error.message}`
