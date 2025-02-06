@@ -1,6 +1,7 @@
+import type { Serializer } from './../src'
 import { bytesToHex, hexToBytes } from '@noble/hashes/utils'
-import { Types, type Serializer, HexBuffer } from './../src'
 import ByteBuffer from 'bytebuffer'
+import { HexBuffer, Types } from './../src'
 
 import serializerTests from './serializer.json'
 
@@ -11,14 +12,15 @@ function serialize(serializer: Serializer, data: any) {
   return bytesToHex(new Uint8Array(buffer.toArrayBuffer()))
 }
 
-describe('serializers', function () {
+describe('serializers', () => {
   for (const test of serializerTests) {
     it(test.name, () => {
       let serializer: Serializer
-      if (test.name.indexOf('::') === -1) {
+      if (!test.name.includes('::')) {
         serializer = Types[test.name as unknown as keyof typeof Types] as Serializer
-      } else {
-        const [base, ...sub] = (test.name.split('::').map((t) => Types[t as unknown as keyof typeof Types]) as [(...args: any[]) => Serializer, ...Serializer[]])
+      }
+      else {
+        const [base, ...sub] = test.name.split('::').map(t => Types[t as unknown as keyof typeof Types]) as [(...args: any[]) => Serializer, ...Serializer[]]
         serializer = base(...sub) as Serializer
       }
       for (const [expected, value] of test.values) {
@@ -28,7 +30,7 @@ describe('serializers', function () {
     })
   }
 
-  it('Binary', function () {
+  it('binary', () => {
     const data = HexBuffer.from('026400c800')
     const r1 = serialize(Types.Binary(), HexBuffer.from([0x80, 0x00, 0x80]))
     assert.equal(r1, '03800080')
@@ -41,14 +43,21 @@ describe('serializers', function () {
     })
   })
 
-  it('Void', function () {
-    assert.throws(() => { serialize(Types.Void, null) })
+  it('void', () => {
+    assert.throws(() => {
+      serialize(Types.Void, null)
+    })
   })
 
-  it('Invalid Operations', function () {
-    assert.throws(() => { serialize(Types.Operation, ['transfer', {}]) })
-    assert.throws(() => { serialize(Types.Operation, ['transfer', { from: 1 }]) })
-    assert.throws(() => { serialize(Types.Operation, ['transfer', 10]) })
+  it('invalid Operations', () => {
+    assert.throws(() => {
+      serialize(Types.Operation, ['transfer', {}])
+    })
+    assert.throws(() => {
+      serialize(Types.Operation, ['transfer', { from: 1 }])
+    })
+    assert.throws(() => {
+      serialize(Types.Operation, ['transfer', 10])
+    })
   })
-
 })

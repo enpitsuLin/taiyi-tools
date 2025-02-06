@@ -1,17 +1,16 @@
-import * as secp from '@noble/secp256k1'
+import type { SignedTransaction, Transaction } from './taiyi/transcation'
 import assert from 'assert'
-import bs58 from 'bs58'
 import { hmac } from '@noble/hashes/hmac'
 import { ripemd160 as nobleRipemd160 } from '@noble/hashes/ripemd160'
 import { sha256 as nobleSha256 } from '@noble/hashes/sha2'
 import { bytesToHex, concatBytes, hexToBytes } from '@noble/hashes/utils'
+import * as secp from '@noble/secp256k1'
+import bs58 from 'bs58'
 import ByteBuffer from 'bytebuffer'
 import { DEFAULT_ADDRESS_PREFIX, DEFAULT_CHAIN_ID } from './client'
 import { Types } from './taiyi/serializer'
-import type { SignedTransaction, Transaction } from './taiyi/transcation'
 
-secp.etc.hmacSha256Sync = (k, ...m) => hmac(nobleSha256, k, secp.etc.concatBytes(...m));
-
+secp.etc.hmacSha256Sync = (k, ...m) => hmac(nobleSha256, k, secp.etc.concatBytes(...m))
 
 export const NETWORK_ID = new Uint8Array([0x80])
 
@@ -68,14 +67,12 @@ export function decodePrivate(encodedKey: string): Uint8Array {
 
 function isCanonicalSignature(signature: Uint8Array): boolean {
   return (
-    !(signature[0] & 0x80) &&
-    !(signature[0] === 0 && !(signature[1] & 0x80)) &&
-    !(signature[32] & 0x80) &&
-    !(signature[32] === 0 && !(signature[33] & 0x80))
+    !(signature[0] & 0x80)
+    && !(signature[0] === 0 && !(signature[1] & 0x80))
+    && !(signature[32] & 0x80)
+    && !(signature[32] === 0 && !(signature[33] & 0x80))
   )
 }
-
-
 
 export class PublicKey {
   public static fromString(wif: string): PublicKey {
@@ -86,18 +83,19 @@ export class PublicKey {
   public static from(value: string | PublicKey) {
     if (value instanceof PublicKey) {
       return value
-    } else {
+    }
+    else {
       return PublicKey.fromString(value)
     }
   }
 
   constructor(
     public readonly key: Uint8Array,
-    public readonly prefix: string = DEFAULT_ADDRESS_PREFIX
+    public readonly prefix: string = DEFAULT_ADDRESS_PREFIX,
   ) {
     assert(
       secp.ProjectivePoint.fromHex(key).assertValidity(),
-      'invalid public key'
+      'invalid public key',
     )
   }
 
@@ -114,7 +112,7 @@ export class PublicKey {
   }
 
   public [Symbol.for('nodejs.util.inspect.custom')]() {
-    return `PublicKey <${this.toString()}>`;
+    return `PublicKey <${this.toString()}>`
   }
 }
 
@@ -124,7 +122,8 @@ export class PrivateKey {
   public static from(value: string | Uint8Array) {
     if (typeof value === 'string') {
       return PrivateKey.fromString(value)
-    } else {
+    }
+    else {
       return new PrivateKey(value)
     }
   }
@@ -186,12 +185,13 @@ export class PrivateKey {
 
 function transactionDigest(
   transaction: Transaction | SignedTransaction,
-  chainId: Uint8Array
+  chainId: Uint8Array,
 ) {
   const buffer = new ByteBuffer(ByteBuffer.DEFAULT_CAPACITY, ByteBuffer.LITTLE_ENDIAN)
   try {
     Types.Transaction(buffer, transaction)
-  } catch (cause) {
+  }
+  catch (cause) {
     const e = new Error('Unable to serialize transaction', { cause })
     e.name = 'SerializationError'
     throw e
@@ -205,7 +205,7 @@ function transactionDigest(
 function signTransaction(
   transaction: Transaction,
   keys: PrivateKey | PrivateKey[],
-  chainId: Uint8Array = DEFAULT_CHAIN_ID
+  chainId: Uint8Array = DEFAULT_CHAIN_ID,
 ) {
   const digest = transactionDigest(transaction, chainId)
   const signedTransaction = structuredClone(transaction) as SignedTransaction
@@ -213,7 +213,9 @@ function signTransaction(
     signedTransaction.signatures = []
   }
 
-  if (!Array.isArray(keys)) { keys = [keys] }
+  if (!Array.isArray(keys)) {
+    keys = [keys]
+  }
   for (const key of keys) {
     const signature = key.sign(digest)
     signedTransaction.signatures.push(signature.toString())

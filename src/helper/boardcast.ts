@@ -1,10 +1,6 @@
-import assert from 'assert'
+import type { Client } from '../client'
 
-import { Client } from '../client'
-import { cryptoUtils, PrivateKey, PublicKey } from '../crypto'
-import { Authority, type AuthorityType } from '../taiyi/account'
-import { Asset } from '../taiyi/asset'
-
+import type { AuthorityType } from '../taiyi/account'
 import type {
   AccountCreateOperation,
   AccountUpdateOperation,
@@ -14,6 +10,12 @@ import type {
   TransferOperation,
 } from '../taiyi/operation'
 import type { SignedTransaction, Transaction, TransactionConfirmation } from '../taiyi/transcation'
+import assert from 'assert'
+
+import { hexToBytes } from '@noble/hashes/utils'
+import { cryptoUtils, PrivateKey, PublicKey } from '../crypto'
+import { Authority } from '../taiyi/account'
+import { Asset } from '../taiyi/asset'
 
 export interface CreateAccountOptions {
   /**
@@ -38,7 +40,7 @@ export interface CreateAccountOptions {
    * 创建者账户，费用将从此账户扣除
    * 签署交易的密钥必须是创建者的活动密钥
    */
-  creator: string,
+  creator: string
   /**
    * 账户创建费用。如果省略，费用将设置为最低可能值
    */
@@ -84,7 +86,7 @@ export class BroadcastAPI {
    * @param key 账户创建者的私有活动密钥
    */
   public async createTestAccount(options: CreateAccountOptions, key: PrivateKey) {
-    assert(global.hasOwnProperty('it'), 'helper to be used only for mocha tests')
+    assert(Object.prototype.hasOwnProperty.call(globalThis, 'it'), 'helper to be used only for mocha tests')
 
     const { username, metadata, creator } = options
 
@@ -98,12 +100,14 @@ export class BroadcastAPI {
       const postingKey = PrivateKey.fromLogin(username, options.password, 'posting').createPublic(prefix)
       posting = Authority.from(postingKey)
       memo_key = PrivateKey.fromLogin(username, options.password, 'memo').createPublic(prefix)
-    } else if (options.auths) {
+    }
+    else if (options.auths) {
       owner = Authority.from(options.auths.owner)
       active = Authority.from(options.auths.active)
       posting = Authority.from(options.auths.posting)
       memo_key = PublicKey.from(options.auths.memoKey)
-    } else {
+    }
+    else {
       throw new Error('Must specify either password or auths')
     }
 
@@ -115,7 +119,7 @@ export class BroadcastAPI {
       const chainProps = await this.client.baiyujing.getChainProperties()
       const creationFee = Asset.from(chainProps.account_creation_fee)
       if (fee.amount !== creationFee.amount) {
-        throw new Error('Fee must be exactly ' + creationFee.toString())
+        throw new Error(`Fee must be exactly ${creationFee.toString()}`)
       }
     }
 
@@ -130,7 +134,7 @@ export class BroadcastAPI {
         new_account_name: username,
         owner,
         posting,
-      }
+      },
     ]
 
     const ops: any[] = [create_op]
@@ -170,13 +174,12 @@ export class BroadcastAPI {
    * @param operations 要发送的操作列表
    * @param key 用于签署交易的私钥
    */
-  public async sendOperations(operations: Operation[],
-    key: PrivateKey | PrivateKey[]): Promise<TransactionConfirmation> {
+  public async sendOperations(operations: Operation[], key: PrivateKey | PrivateKey[]): Promise<TransactionConfirmation> {
     const props = await this.client.baiyujing.getDynamicGlobalProperties()
 
     const ref_block_num = props.head_block_number & 0xFFFF
-    const ref_block_prefix = Buffer.from(props.head_block_id, 'hex').readUInt32LE(4)
-    const expiration = new Date(new Date(props.time + 'Z').getTime() + this.expireTime).toISOString().slice(0, -5)
+    const ref_block_prefix = new DataView(hexToBytes(props.head_block_id).buffer).getUint32(4, true)
+    const expiration = new Date(new Date(`${props.time}Z`).getTime() + this.expireTime).toISOString().slice(0, -5)
     const extensions: unknown[] = []
 
     const tx: Transaction = {

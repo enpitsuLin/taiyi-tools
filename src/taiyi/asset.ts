@@ -1,9 +1,9 @@
 import assert from 'assert'
 
 export interface FaiAsset {
-    amount: string | number,
-    precision: number,
-    fai: string
+  amount: string | number
+  precision: number
+  fai: string
 }
 
 /**
@@ -15,189 +15,193 @@ export type AssetSymbol = 'YANG' | 'YIN' | 'QI' | 'GOLD' | 'FOOD' | 'WOOD' | 'FA
  * 表示太乙资产的类，例如 `1.000 QI` 或 `12.112233 YANG`。
  */
 export class Asset {
+  /**
+   * 从字符串创建一个 Asset 实例，例如 `42.000 QI` 或者 `4.2 \@@000000021`。
+   *
+   * 如果使用传统字符串表示则需要精度表示准确，而 Fai 表示则不需要
+   */
+  public static fromString(string: string, expectedSymbol?: AssetSymbol) {
+    const [amountString, symbol] = string.split(' ')
 
-    /**
-     * 从字符串创建一个 Asset 实例，例如 `42.000 QI` 或者 `4.2 \@@000000021`。
-     * 
-     * 如果使用传统字符串表示则需要精度表示准确，而 Fai 表示则不需要
-     */
-    public static fromString(string: string, expectedSymbol?: AssetSymbol) {
-        const [amountString, symbol] = string.split(' ')
-
-        let _symbol = symbol as AssetSymbol, isFai = false
-        // 字符串的 symbol 是 fai 表示
-        if (symbol.startsWith("@@")) {
-            _symbol = Asset.getSymbolFromFai(symbol)
-            isFai = true
-        }
-
-        if (!['YANG', 'YIN', 'QI', 'GOLD', 'FOOD', 'WOOD', 'FABR', 'HERB'].includes(_symbol)) {
-            throw new Error(`Invalid asset symbol: ${_symbol}`)
-        }
-        if (expectedSymbol && _symbol !== expectedSymbol) {
-            throw new Error(`Invalid asset, expected symbol: ${expectedSymbol} got: ${_symbol}`)
-        }
-        const amount = Number.parseFloat(amountString)
-        if (!Number.isFinite(amount)) {
-            throw new Error(`Invalid asset amount: ${amountString}`)
-        }
-        return new Asset(amount, _symbol, isFai)
-
+    let _symbol = symbol as AssetSymbol
+    let isFai = false
+    // 字符串的 symbol 是 fai 表示
+    if (symbol.startsWith('@@')) {
+      _symbol = Asset.getSymbolFromFai(symbol)
+      isFai = true
     }
 
-    /**
-     * 创建新的 Asset。
-     * @param symbol 创建时使用的 symbol。也会用于验证资产，如果传递的值具有不同的 symbol 则会抛出错误。
-     */
-    public static from(value: string | Asset | number | FaiAsset, symbol?: AssetSymbol, isFai?: boolean) {
-        if (value instanceof Asset) {
-            if (symbol && value.symbol !== symbol) {
-                throw new Error(`Invalid asset, expected symbol: ${symbol} got: ${value.symbol}`)
-            }
-            return value
-        } else if (typeof value === 'number' && Number.isFinite(value)) {
-            return new Asset(value, symbol || 'QI', isFai)
-        } else if (typeof value === 'string') {
-            return Asset.fromString(value, symbol)
-        } else if (typeof value === 'object' && 'amount' in value && 'precision' in value && 'fai' in value) {
-            const amount = typeof value.amount === 'string' ? Number.parseFloat(value.amount) : value.amount
-            if (!Number.isFinite(amount)) {
-                throw new Error(`Invalid asset amount: ${amount}`)
-            }
-            return new Asset(amount, Asset.getSymbolFromFai(value.fai), true)
-        } else {
-            throw new Error(`Invalid asset '${String(value)}'`)
-        }
+    if (!['YANG', 'YIN', 'QI', 'GOLD', 'FOOD', 'WOOD', 'FABR', 'HERB'].includes(_symbol)) {
+      throw new Error(`Invalid asset symbol: ${_symbol}`)
     }
-
-    /**
-     * 返回两个资产中较小的一个。
-     */
-    public static min(a: Asset, b: Asset) {
-        assert(a.symbol === b.symbol, 'can not compare assets with different symbols')
-        return a.amount < b.amount ? a : b
+    if (expectedSymbol && _symbol !== expectedSymbol) {
+      throw new Error(`Invalid asset, expected symbol: ${expectedSymbol} got: ${_symbol}`)
     }
-
-    /**
-     * 返回两个资产中较大的一个。
-     */
-    public static max(a: Asset, b: Asset) {
-        assert(a.symbol === b.symbol, 'can not compare assets with different symbols')
-        return a.amount > b.amount ? a : b
+    const amount = Number.parseFloat(amountString)
+    if (!Number.isFinite(amount)) {
+      throw new TypeError(`Invalid asset amount: ${amountString}`)
     }
+    return new Asset(amount, _symbol, isFai)
+  }
 
-    constructor(
-        public readonly amount: number,
-        public readonly symbol: AssetSymbol,
-        public readonly isFai = false
-    ) { }
-
-    /**
-     * 返回资产的精度。
-     */
-    public getPrecision(): number {
-        switch (this.symbol) {
-            case 'YANG':
-            case 'YIN':
-                return 3
-            case 'QI':
-            case 'GOLD':
-            case 'FOOD':
-            case 'WOOD':
-            case 'FABR':
-            case 'HERB':
-                return 6
-        }
+  /**
+   * 创建新的 Asset。
+   *
+   * @param value 资产额度。
+   * @param symbol 创建时使用的 symbol。也会用于验证资产，如果传递的值具有不同的 symbol 则会抛出错误。
+   * @param isFai 是否是 fai 表示。
+   */
+  public static from(value: string | Asset | number | FaiAsset, symbol?: AssetSymbol, isFai?: boolean) {
+    if (value instanceof Asset) {
+      if (symbol && value.symbol !== symbol) {
+        throw new Error(`Invalid asset, expected symbol: ${symbol} got: ${value.symbol}`)
+      }
+      return value
     }
-
-    /**
-     * 返回 fai 表示
-     */
-    static getFaiFromSymbol(symbol: string): string {
-        switch (symbol) {
-            case 'YANG':
-                return "@@000000021"
-            case 'QI':
-                return "@@000000037"
-            case 'GOLD':
-            case 'FOOD':
-            case 'WOOD':
-            case 'FABR':
-            case 'HERB':
-            default:
-                throw new Error(`Not implemented symbol: ${symbol}`)
-        }
+    else if (typeof value === 'number' && Number.isFinite(value)) {
+      return new Asset(value, symbol || 'QI', isFai)
     }
-
-    static getSymbolFromFai(fai: string): AssetSymbol {
-        switch (fai) {
-            case '@@000000021':
-                return "YANG"
-            case '@@000000037':
-                return "QI"
-            default:
-                throw new Error(`Not implemented fai: ${fai}`)
-        }
+    else if (typeof value === 'string') {
+      return Asset.fromString(value, symbol)
     }
-
-
-    /**
-     * 返回一个新实例为两个资产相加。
-     */
-    public add(amount: Asset | string | number): Asset {
-        const other = Asset.from(amount, this.symbol)
-        assert(this.symbol === other.symbol, 'can not add with different symbols')
-        return new Asset(this.amount + other.amount, this.symbol)
+    else if (typeof value === 'object' && 'amount' in value && 'precision' in value && 'fai' in value) {
+      const amount = typeof value.amount === 'string' ? Number.parseFloat(value.amount) : value.amount
+      if (!Number.isFinite(amount)) {
+        throw new TypeError(`Invalid asset amount: ${amount}`)
+      }
+      return new Asset(amount, Asset.getSymbolFromFai(value.fai), true)
     }
-
-    /**
-     * 返回一个新实例为两个资产相减。
-     */
-    public subtract(amount: Asset | string | number): Asset {
-        const other = Asset.from(amount, this.symbol)
-        assert(this.symbol === other.symbol, 'can not subtract with different symbols')
-        return new Asset(this.amount - other.amount, this.symbol)
+    else {
+      throw new Error(`Invalid asset '${String(value)}'`)
     }
+  }
 
-    /**
-     * 返回一个新实例为两个资产相乘。
-     */
-    public multiply(factor: Asset | string | number): Asset {
-        const other = Asset.from(factor, this.symbol)
-        assert(this.symbol === other.symbol, 'can not multiply with different symbols')
-        return new Asset(this.amount * other.amount, this.symbol)
+  /**
+   * 返回两个资产中较小的一个。
+   */
+  public static min(a: Asset, b: Asset) {
+    assert(a.symbol === b.symbol, 'can not compare assets with different symbols')
+    return a.amount < b.amount ? a : b
+  }
+
+  /**
+   * 返回两个资产中较大的一个。
+   */
+  public static max(a: Asset, b: Asset) {
+    assert(a.symbol === b.symbol, 'can not compare assets with different symbols')
+    return a.amount > b.amount ? a : b
+  }
+
+  constructor(
+    public readonly amount: number,
+    public readonly symbol: AssetSymbol,
+    public readonly isFai = false,
+  ) { }
+
+  /**
+   * 返回资产的精度。
+   */
+  public getPrecision(): number {
+    switch (this.symbol) {
+      case 'YANG':
+      case 'YIN':
+        return 3
+      case 'QI':
+      case 'GOLD':
+      case 'FOOD':
+      case 'WOOD':
+      case 'FABR':
+      case 'HERB':
+        return 6
     }
+  }
 
-    /**
-     * 返回一个新实例为两个资产相除。
-     */
-    public divide(divisor: Asset | string | number): Asset {
-        const other = Asset.from(divisor, this.symbol)
-        assert(this.symbol === other.symbol, 'can not divide with different symbols')
-        return new Asset(this.amount / other.amount, this.symbol)
+  /**
+   * 返回 fai 表示
+   */
+  static getFaiFromSymbol(symbol: string): string {
+    switch (symbol) {
+      case 'YANG':
+        return '@@000000021'
+      case 'QI':
+        return '@@000000037'
+      case 'GOLD':
+      case 'FOOD':
+      case 'WOOD':
+      case 'FABR':
+      case 'HERB':
+      default:
+        throw new Error(`Not implemented symbol: ${symbol}`)
     }
+  }
 
-    /**
-     * 返回资产的字符串表示，例如 `42.000 QI`。
-     */
-    public toString(): string {
-        return `${this.amount.toFixed(this.getPrecision())} ${this.symbol}`
+  static getSymbolFromFai(fai: string): AssetSymbol {
+    switch (fai) {
+      case '@@000000021':
+        return 'YANG'
+      case '@@000000037':
+        return 'QI'
+      default:
+        throw new Error(`Not implemented fai: ${fai}`)
     }
+  }
 
-    /**
-     * 用于 JSON 序列化
-     */
-    public toJSON(): string {
-        if (this.isFai) {
-            return JSON.stringify({
-                amount: this.amount,
-                precision: this.getPrecision(),
-                fai: Asset.getFaiFromSymbol(this.symbol)
-            })
-        }
-        return this.toString()
+  /**
+   * 返回一个新实例为两个资产相加。
+   */
+  public add(amount: Asset | string | number): Asset {
+    const other = Asset.from(amount, this.symbol)
+    assert(this.symbol === other.symbol, 'can not add with different symbols')
+    return new Asset(this.amount + other.amount, this.symbol)
+  }
+
+  /**
+   * 返回一个新实例为两个资产相减。
+   */
+  public subtract(amount: Asset | string | number): Asset {
+    const other = Asset.from(amount, this.symbol)
+    assert(this.symbol === other.symbol, 'can not subtract with different symbols')
+    return new Asset(this.amount - other.amount, this.symbol)
+  }
+
+  /**
+   * 返回一个新实例为两个资产相乘。
+   */
+  public multiply(factor: Asset | string | number): Asset {
+    const other = Asset.from(factor, this.symbol)
+    assert(this.symbol === other.symbol, 'can not multiply with different symbols')
+    return new Asset(this.amount * other.amount, this.symbol)
+  }
+
+  /**
+   * 返回一个新实例为两个资产相除。
+   */
+  public divide(divisor: Asset | string | number): Asset {
+    const other = Asset.from(divisor, this.symbol)
+    assert(this.symbol === other.symbol, 'can not divide with different symbols')
+    return new Asset(this.amount / other.amount, this.symbol)
+  }
+
+  /**
+   * 返回资产的字符串表示，例如 `42.000 QI`。
+   */
+  public toString(): string {
+    return `${this.amount.toFixed(this.getPrecision())} ${this.symbol}`
+  }
+
+  /**
+   * 用于 JSON 序列化
+   */
+  public toJSON(): string {
+    if (this.isFai) {
+      return JSON.stringify({
+        amount: this.amount,
+        precision: this.getPrecision(),
+        fai: Asset.getFaiFromSymbol(this.symbol),
+      })
     }
-
+    return this.toString()
+  }
 }
 
 export type PriceType = Price | { base: Asset | string, quote: Asset | string }
@@ -210,54 +214,55 @@ export type PriceType = Price | { base: Asset | string, quote: Asset | string }
  * 1 EUR / 1.25 USD，其中：
  * 1 EUR 是作为基准(base)的资产
  * 1.25 USD 是作为报价(quote)的资产
- * 
+ *
  * 可以用来确定 EUR 对 USD 的价值。
  */
 export class Price {
-
-    /**
-     * 创建新的 Price。
-     */
-    public static from(value: PriceType) {
-        if (value instanceof Price) {
-            return value
-        } else {
-            return new Price(Asset.from(value.base), Asset.from(value.quote))
-        }
+  /**
+   * 创建新的 Price。
+   */
+  public static from(value: PriceType) {
+    if (value instanceof Price) {
+      return value
     }
-
-    /**
-     * @param base  - 表示价格对象的值相对于报价资产的值。不能有 amount == 0，否则断言失败。
-     * @param quote - 表示相对资产。不能有 amount == 0，否则断言失败。
-     *
-     * base 和 quote 必须具有不同的 symbol 定义。
-     */
-    constructor(public readonly base: Asset, public readonly quote: Asset) {
-        assert(base.amount !== 0 && quote.amount !== 0, 'base and quote assets must be non-zero')
-        assert(base.symbol !== quote.symbol, 'base and quote can not have the same symbol')
+    else {
+      return new Price(Asset.from(value.base), Asset.from(value.quote))
     }
+  }
 
-    /**
-     * 返回这个价格对的字符串表示。
-     */
-    public toString() {
-        return `${this.base}:${this.quote}`
+  /**
+   * @param base  - 表示价格对象的值相对于报价资产的值。不能有 amount == 0，否则断言失败。
+   * @param quote - 表示相对资产。不能有 amount == 0，否则断言失败。
+   *
+   * base 和 quote 必须具有不同的 symbol 定义。
+   */
+  constructor(public readonly base: Asset, public readonly quote: Asset) {
+    assert(base.amount !== 0 && quote.amount !== 0, 'base and quote assets must be non-zero')
+    assert(base.symbol !== quote.symbol, 'base and quote can not have the same symbol')
+  }
+
+  /**
+   * 返回这个价格对的字符串表示。
+   */
+  public toString() {
+    return `${this.base}:${this.quote}`
+  }
+
+  /**
+   * 返回一个新实例为价格在两个符号之间转换。
+   * 如果传递的资产符号不是 base 或 quote，则抛出错误。
+   */
+  public convert(asset: Asset) {
+    if (asset.symbol === this.base.symbol) {
+      assert(this.base.amount > 0)
+      return new Asset(asset.amount * this.quote.amount / this.base.amount, this.quote.symbol)
     }
-
-    /**
-     * 返回一个新实例为价格在两个符号之间转换。
-     * 如果传递的资产符号不是 base 或 quote，则抛出错误。
-     */
-    public convert(asset: Asset) {
-        if (asset.symbol === this.base.symbol) {
-            assert(this.base.amount > 0)
-            return new Asset(asset.amount * this.quote.amount / this.base.amount, this.quote.symbol)
-        } else if (asset.symbol === this.quote.symbol) {
-            assert(this.quote.amount > 0)
-            return new Asset(asset.amount * this.base.amount / this.quote.amount, this.base.symbol)
-        } else {
-            throw new Error(`Can not convert ${asset} with ${this}`)
-        }
+    else if (asset.symbol === this.quote.symbol) {
+      assert(this.quote.amount > 0)
+      return new Asset(asset.amount * this.base.amount / this.quote.amount, this.base.symbol)
     }
-
+    else {
+      throw new Error(`Can not convert ${asset} with ${this}`)
+    }
+  }
 }

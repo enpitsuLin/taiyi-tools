@@ -1,30 +1,31 @@
-import { Client, ClientMessageError, waitForEvent } from './../src'
+import type { ClientMessageError } from './../src'
+import { Client, waitForEvent } from './../src'
 
 describe('client', () => {
   vi.setConfig({
-    testTimeout: 100000
+    testTimeout: 100000,
   })
   const client = Client.testnet({ autoConnect: false })
 
-  it('should connect', async function () {
+  it('should connect', async () => {
     await client.connect()
     expect(client.isConnected()).toBe(true)
   })
 
-  it('should make rpc call', async function () {
+  it('should make rpc call', async () => {
     const config = await client.call('baiyujing_api', 'get_config')
     expect(config)
     expect(config).toHaveProperty('IS_TEST_NET')
   })
 
-  it('should reconnect on disconnection', async function () {
-    //@ts-expect-error test usage
+  it('should reconnect on disconnection', async () => {
+    // @ts-expect-error test usage
     client.socket!.close()
     await waitForEvent(client, 'open')
   })
 
-  it('should flush call buffer on reconnection', async function () {
-    //@ts-expect-error test usage
+  it('should flush call buffer on reconnection', async () => {
+    // @ts-expect-error test usage
     client.socket!.close()
     const p1 = client.call('baiyujing_api', 'get_accounts', [['sifu']])
     const p2 = client.call('baiyujing_api', 'get_accounts', [['null']])
@@ -35,24 +36,26 @@ describe('client', () => {
     expect(r2[0].name).toBe('null')
   })
 
-  it('should time out when loosing connection', async function () {
+  it('should time out when loosing connection', async () => {
     client.sendTimeout = 100
     await client.disconnect()
     try {
       await client.call('baiyujing_api', 'get_accounts', [['sifu']]) as any[]
       assert(false, 'should not be reached')
-    } catch (error) {
+    }
+    catch (error) {
       assert.equal((error as Error).name, 'TimeoutError')
     }
     client.sendTimeout = 5000
     await client.connect()
   })
 
-  it('should handle rpc errors', async function () {
+  it('should handle rpc errors', async () => {
     try {
       await client.call('baiyujing_api', 'method_does_exist')
       assert(false, 'should not be reached')
-    } catch (error) {
+    }
+    catch (error) {
       assert(error instanceof Error)
 
       expect(error.name).toBe('RPCError')
@@ -64,32 +67,34 @@ describe('client', () => {
     }
   })
 
-  it('should handle garbled data from server', async function () {
+  it('should handle garbled data from server', async () => {
     const errorPromise = waitForEvent<CustomEvent<ClientMessageError>>(client, 'error')
-    //@ts-expect-error test usage
+    // @ts-expect-error test usage
     client.onMessage({ data: 'this}}is notJSON!' })
     const error = await errorPromise
     expect(error.detail.name).toBe('MessageError')
   })
 
-  it('should handle write errors', async function () {
-    //@ts-expect-error test usage
+  it('should handle write errors', async () => {
+    // @ts-expect-error test usage
     const socketSend = client.socket!.send
-    //@ts-expect-error test usage
-    client.socket!.send = () => { throw new Error('Send fail') }
+    // @ts-expect-error test usage
+    client.socket!.send = () => {
+      throw new Error('Send fail')
+    }
     try {
       await client.call('database_api', 'i_like_turtles')
       assert(false, 'should not be reached')
-    } catch (error) {
+    }
+    catch (error) {
       expect((error as Error).message).toBe('Send fail')
     }
-    //@ts-expect-error test usage
+    // @ts-expect-error test usage
     client.socket!.send = socketSend
   })
 
-  it('should disconnect', async function () {
+  it('should disconnect', async () => {
     await client.disconnect()
     assert(!client.isConnected())
   })
-
 })

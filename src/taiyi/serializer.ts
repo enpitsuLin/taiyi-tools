@@ -1,57 +1,56 @@
+import type { Operation } from './operation'
 import * as ByteBuffer from 'bytebuffer'
 import { PublicKey } from '../crypto'
 import { Asset } from './asset'
 import { HexBuffer } from './misc'
-import type { Operation } from './operation'
-import { bytesToHex } from '@noble/hashes/utils'
 
 export type Serializer = (buffer: ByteBuffer, data: any) => void
 
-const VoidSerializer = (_buffer: ByteBuffer) => {
+function VoidSerializer(_buffer: ByteBuffer) {
   throw new Error('Void can not be serialized')
 }
 
-const StringSerializer = (buffer: ByteBuffer, data: string) => {
+function StringSerializer(buffer: ByteBuffer, data: string) {
   buffer.writeVString(data)
 }
 
-const Int8Serializer = (buffer: ByteBuffer, data: number) => {
+function Int8Serializer(buffer: ByteBuffer, data: number) {
   buffer.writeInt8(data)
 }
 
-const Int16Serializer = (buffer: ByteBuffer, data: number) => {
+function Int16Serializer(buffer: ByteBuffer, data: number) {
   buffer.writeInt16(data)
 }
 
-const Int32Serializer = (buffer: ByteBuffer, data: number) => {
+function Int32Serializer(buffer: ByteBuffer, data: number) {
   buffer.writeInt32(data)
 }
 
-const Int64Serializer = (buffer: ByteBuffer, data: number) => {
+function Int64Serializer(buffer: ByteBuffer, data: number) {
   buffer.writeInt64(data)
 }
 
-const UInt8Serializer = (buffer: ByteBuffer, data: number) => {
+function UInt8Serializer(buffer: ByteBuffer, data: number) {
   buffer.writeUint8(data)
 }
 
-const UInt16Serializer = (buffer: ByteBuffer, data: number) => {
+function UInt16Serializer(buffer: ByteBuffer, data: number) {
   buffer.writeUint16(data)
 }
 
-const UInt32Serializer = (buffer: ByteBuffer, data: number) => {
+function UInt32Serializer(buffer: ByteBuffer, data: number) {
   buffer.writeUint32(data)
 }
 
-const UInt64Serializer = (buffer: ByteBuffer, data: number) => {
+function UInt64Serializer(buffer: ByteBuffer, data: number) {
   buffer.writeUint64(data)
 }
 
-const BooleanSerializer = (buffer: ByteBuffer, data: boolean) => {
+function BooleanSerializer(buffer: ByteBuffer, data: boolean) {
   buffer.writeByte(data ? 1 : 0)
 }
 
-const StaticVariantSerializer = (itemSerializers: Serializer[]) => {
+function StaticVariantSerializer(itemSerializers: Serializer[]) {
   return (buffer: ByteBuffer, data: [number, any]) => {
     const [id, item] = data
     buffer.writeVarint32(id)
@@ -63,23 +62,23 @@ const StaticVariantSerializer = (itemSerializers: Serializer[]) => {
  * 序列化资产。
  * @note 对于大于 `2^53-1/10^precision` 的数额会失去精度。在实际使用中不应成为问题。
  */
-const AssetSerializer = (buffer: ByteBuffer, data: Asset | string | number) => {
-
+function AssetSerializer(buffer: ByteBuffer, data: Asset | string | number) {
   const asset = Asset.from(data)
 
   const precision = asset.getPrecision()
   if (asset.isFai) {
-    // @ts-expect-error
+    // @ts-expect-error wrong type in @type/bytebuffer package
     const LongConstructor = ByteBuffer.Long as typeof Long
     // const faiNumPart = Number.parseInt(Asset.getFaiFromSymbol(asset.symbol).slice(2))
 
     // const fai = Math.floor(faiNumPart / 10)
     const towrite = LongConstructor.fromString(asset.amount.toString())
     buffer.writeInt64(towrite)
-    // const write32 = (fai << 5) + 16 + asset.getPrecision() 
+    // const write32 = (fai << 5) + 16 + asset.getPrecision()
     // buffer.writeUint32(write32)
-  } else {
-    buffer.writeInt64(Math.round(asset.amount * Math.pow(10, precision)))
+  }
+  else {
+    buffer.writeInt64(Math.round(asset.amount * 10 ** precision))
   }
 
   buffer.writeUint8(precision)
@@ -89,19 +88,20 @@ const AssetSerializer = (buffer: ByteBuffer, data: Asset | string | number) => {
   }
 }
 
-const DateSerializer = (buffer: ByteBuffer, data: string) => {
-  buffer.writeUint32(Math.floor(new Date(data + 'Z').getTime() / 1000))
+function DateSerializer(buffer: ByteBuffer, data: string) {
+  buffer.writeUint32(Math.floor(new Date(`${data}Z`).getTime() / 1000))
 }
 
-const PublicKeySerializer = (buffer: ByteBuffer, data: PublicKey | string | null) => {
+function PublicKeySerializer(buffer: ByteBuffer, data: PublicKey | string | null) {
   if (data === null || (typeof data === 'string' && data.slice(-39) === '1111111111111111111111111111111114T1Anm')) {
     buffer.append(new Uint8Array(33))
-  } else {
+  }
+  else {
     buffer.append(PublicKey.from(data).key)
   }
 }
 
-const BinarySerializer = (size?: number) => {
+function BinarySerializer(size?: number) {
   return (buffer: ByteBuffer, data: Uint8Array | HexBuffer) => {
     data = HexBuffer.from(data)
     const len = data.buffer.length
@@ -109,15 +109,15 @@ const BinarySerializer = (size?: number) => {
       if (len !== size) {
         throw new Error(`Unable to serialize binary. Expected ${size} bytes, got ${len}`)
       }
-    } else {
+    }
+    else {
       buffer.writeVarint32(len)
     }
     buffer.append(data.buffer)
   }
 }
 
-
-const FlatMapSerializer = (keySerializer: Serializer, valueSerializer: Serializer) => {
+function FlatMapSerializer(keySerializer: Serializer, valueSerializer: Serializer) {
   return (buffer: ByteBuffer, data: Array<[any, any]>) => {
     buffer.writeVarint32(data.length)
     for (const [key, value] of data) {
@@ -127,7 +127,7 @@ const FlatMapSerializer = (keySerializer: Serializer, valueSerializer: Serialize
   }
 }
 
-const ArraySerializer = (itemSerializer: Serializer) => {
+function ArraySerializer(itemSerializer: Serializer) {
   return (buffer: ByteBuffer, data: any[]) => {
     buffer.writeVarint32(data.length)
     for (const item of data) {
@@ -136,12 +136,13 @@ const ArraySerializer = (itemSerializer: Serializer) => {
   }
 }
 
-const ObjectSerializer = (keySerializers: Array<[string, Serializer]>) => {
+function ObjectSerializer(keySerializers: Array<[string, Serializer]>) {
   return (buffer: ByteBuffer, data: { [key: string]: any }) => {
     for (const [key, serializer] of keySerializers) {
       try {
         serializer(buffer, data[key])
-      } catch (error: any) {
+      }
+      catch (error: any) {
         error.message = `${key}: ${error.message}`
         throw error
       }
@@ -149,12 +150,13 @@ const ObjectSerializer = (keySerializers: Array<[string, Serializer]>) => {
   }
 }
 
-const OptionalSerializer = (valueSerializer: Serializer) => {
+function OptionalSerializer(valueSerializer: Serializer) {
   return (buffer: ByteBuffer, data: any) => {
-    if (data != undefined) {
+    if (data !== undefined) {
       buffer.writeByte(1)
       valueSerializer(buffer, data)
-    } else {
+    }
+    else {
       buffer.writeByte(0)
     }
   }
@@ -181,7 +183,7 @@ type DefinitionsToParams<Definitions extends Array<[string, Serializer]>> = {
   [key in Definitions[number][0]]: Parameters<Definitions[number][1]>[1]
 }
 
-const OperationDataSerializer = <const Definitions extends Array<[string, Serializer]>>(operationId: number, definitions: Definitions) => {
+function OperationDataSerializer<const Definitions extends Array<[string, Serializer]>>(operationId: number, definitions: Definitions) {
   const objectSerializer = ObjectSerializer(definitions)
   return (buffer: ByteBuffer, data: DefinitionsToParams<Definitions>) => {
     buffer.writeVarint32(operationId)
@@ -208,7 +210,6 @@ const OperationSerializers: Record<Operation['0'], Serializer> = {
     ['memo_key', PublicKeySerializer],
     ['json_metadata', StringSerializer],
   ]),
-
 
   transfer: OperationDataSerializer(2, [
     ['from', StringSerializer],
@@ -238,7 +239,6 @@ const OperationSerializers: Record<Operation['0'], Serializer> = {
     ['qi', AssetSerializer],
   ]),
 
-
   siming_update: OperationDataSerializer(7, [
     ['owner', StringSerializer],
     ['url', StringSerializer],
@@ -265,7 +265,6 @@ const OperationSerializers: Record<Operation['0'], Serializer> = {
     ['extensions', ArraySerializer(VoidSerializer)],
   ]),
 
-
   custom: OperationDataSerializer(12, [
     ['required_auths', ArraySerializer(StringSerializer)],
     ['id', UInt16Serializer],
@@ -277,7 +276,6 @@ const OperationSerializers: Record<Operation['0'], Serializer> = {
     ['id', StringSerializer],
     ['json', StringSerializer],
   ]),
-
 
   request_account_recovery: OperationDataSerializer(14, [
     ['recovery_account', StringSerializer],
@@ -297,14 +295,13 @@ const OperationSerializers: Record<Operation['0'], Serializer> = {
     ['extensions', ArraySerializer(VoidSerializer)],
   ]),
 
-
   claim_reward_balance: OperationDataSerializer(17, [
     ['account', StringSerializer],
     ['reward_qi', AssetSerializer],
     ['extensions', ArraySerializer(VoidSerializer)],
   ]),
 
-  //#region contract
+  // #region contract
   create_contract: OperationDataSerializer(18, [
     ['owner', StringSerializer],
     ['name', StringSerializer],
@@ -326,9 +323,9 @@ const OperationSerializers: Record<Operation['0'], Serializer> = {
     ['params', StringSerializer],
     ['fee', AssetSerializer],
   ]),
-  //#endregion
+  // #endregion
 
-  //#region nfa (non fungible asset)
+  // #region nfa (non fungible asset)
   create_nfa_symbol: OperationDataSerializer(21, [
     ['owner', StringSerializer],
     ['name', StringSerializer],
@@ -364,17 +361,17 @@ const OperationSerializers: Record<Operation['0'], Serializer> = {
     ['action', StringSerializer],
     ['params', StringSerializer],
   ]),
-  //#endregion
+  // #endregion
 
-  //#region zone
+  // #region zone
   create_zone: OperationDataSerializer(26, [
     ['owner', StringSerializer],
     ['name', StringSerializer],
     ['json_metadata', StringSerializer],
   ]),
-  //#endregion
+  // #endregion
 
-  //#region actor
+  // #region actor
   create_actor_talent_rule: OperationDataSerializer(27, [
     ['owner', StringSerializer],
     ['name', StringSerializer],
@@ -386,9 +383,9 @@ const OperationSerializers: Record<Operation['0'], Serializer> = {
     ['name', StringSerializer],
     ['json_metadata', StringSerializer],
   ]),
-  //#endregion
+  // #endregion
 
-  //#region virtual operations
+  // #region virtual operations
   hardfork: OperationDataSerializer(29, [
     ['hardfork_id', UInt32Serializer],
   ]),
@@ -477,17 +474,18 @@ const OperationSerializers: Record<Operation['0'], Serializer> = {
     ['narrator', StringSerializer],
     ['content', StringSerializer],
   ]),
-  //#endregion
+  // #endregion
 }
 
-const OperationSerializer = (buffer: ByteBuffer, operation: Operation) => {
+function OperationSerializer(buffer: ByteBuffer, operation: Operation) {
   const serializer = OperationSerializers[operation[0]]
   if (!serializer) {
     throw new Error(`No serializer for operation: ${operation[0]}`)
   }
   try {
     serializer(buffer, operation[1])
-  } catch (error: any) {
+  }
+  catch (error: any) {
     error.message = `${operation[0]}: ${error.message}`
     throw error
   }

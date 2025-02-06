@@ -34,7 +34,7 @@ export interface Actor {
   standpoint_type: string
   strength: number
   strength_max: number
-  //TODO(@enpitsulin): 后面可以改成具名元组
+  // TODO(@enpitsulin): 后面可以改成具名元组
   talents: [number, number][]
   vitality: number
   vitality_max: number

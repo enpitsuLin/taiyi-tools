@@ -29,7 +29,6 @@ export interface BlockchainStreamOptions {
 }
 
 export class Blockchain {
-
   constructor(readonly client: Client) { }
 
   /**
@@ -69,7 +68,8 @@ export class Blockchain {
     const interval = 3
     if (!options) {
       options = {}
-    } else if (typeof options === 'number') {
+    }
+    else if (typeof options === 'number') {
       options = { from: options }
     }
     let current = await this.getCurrentBlockNum(options.mode)

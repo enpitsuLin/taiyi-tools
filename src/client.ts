@@ -1,5 +1,5 @@
-import { bytesToHex, hexToBytes } from '@noble/hashes/utils'
 import assert from 'assert'
+import { bytesToHex, hexToBytes } from '@noble/hashes/utils'
 import defu from 'defu'
 import { version } from '../package.json'
 import { BaiYuJingAPI } from './helper/baiyujing'
@@ -62,15 +62,14 @@ interface RPCResponse {
 }
 
 interface PendingRequest {
-  request: RPCRequest,
+  request: RPCRequest
   /**
    * 超时 AbortSignal
    */
-  signal?: AbortSignal,
+  signal?: AbortSignal
   resolve: (response: any) => void
   reject: (error: Error) => void
 }
-
 
 export interface RetryOptions {
   retry?: number | ((failureCount: number, error: Error) => boolean)
@@ -103,10 +102,9 @@ export interface ClientOptions {
   retry?: number | ((failureCount: number, error: Error) => boolean) | RetryOptions
 }
 
-
 const defaultRetryOptions: Required<RetryOptions> = {
   retry: 3,
-  backoff: defaultBackoff
+  backoff: defaultBackoff,
 }
 
 /**
@@ -129,12 +127,11 @@ export class ClientWebSocketError extends Error {
   }
 }
 
-//MARK: Client
+// MARK: Client
 /**
  * RPC client
  */
 export class Client extends EventTarget {
-
   /**
    * 创建测试网客户端
    * @param options 客户端选项
@@ -143,36 +140,36 @@ export class Client extends EventTarget {
   public static testnet(options?: ClientOptions) {
     const opts: ClientOptions = defu(options, {
       addressPrefix: 'TAI',
-      chainId: '18dcf0a285365fc58b71f18b3d3fec954aa0c141c44e4e5cb4cf777b9eab274e'
+      chainId: '18dcf0a285365fc58b71f18b3d3fec954aa0c141c44e4e5cb4cf777b9eab274e',
     })
     return new Client('ws://47.109.49.30:8090', opts)
   }
 
-  //#region Client Properties
+  // #region Client Properties
   public readonly url: string
   public readonly chainId: Uint8Array
   public readonly addressPrefix: string
   public readonly retryOptions: Required<RetryOptions>
 
-  //#region Client Status
+  // #region Client Status
   private active = false
   private failureCount = 0
   private socket?: WebSocket
-  //#endregion
+  // #endregion
 
-  //#region Request State
+  // #region Request State
   private seqNo = 0
   private pending = new Map<number, PendingRequest>()
-  //#endregion
+  // #endregion
 
   private connectPromise: Promise<void> | null = null
   sendTimeout: number
-  //#endregion
+  // #endregion
 
-  //#region Helper
+  // #region Helper
   public readonly baiyujing: BaiYuJingAPI
   public readonly blockchain: Blockchain
-  //#endregion
+  // #endregion
 
   constructor(url: string, options: ClientOptions = {}) {
     super()
@@ -228,16 +225,16 @@ export class Client extends EventTarget {
     this.active = false
 
     if (
-      this.socket &&
-      this.socket.readyState !== WebSocket.CLOSED &&
-      this.socket.readyState !== WebSocket.CLOSING
+      this.socket
+      && this.socket.readyState !== WebSocket.CLOSED
+      && this.socket.readyState !== WebSocket.CLOSING
     ) {
       this.socket.close()
       await waitForEvent(this, 'close')
     }
   }
 
-  //#region Event Handlers
+  // #region Event Handlers
   private onMessage = (event: MessageEvent) => {
     try {
       const rpcMessage = JSON.parse(event.data)
@@ -263,18 +260,19 @@ export class Client extends EventTarget {
             return rv
           })
           const unformattedData = Object.keys(topData)
-            .map((key) => ({ key, value: topData[key] }))
-            .filter((item) => typeof item.value === 'string')
-            .map((item) => `${item.key}=${item.value}`)
+            .map(key => ({ key, value: topData[key] }))
+            .filter(item => typeof item.value === 'string')
+            .map(item => `${item.key}=${item.value}`)
           if (unformattedData.length > 0) {
-            message += ' ' + unformattedData.join(' ')
+            message += ` ${unformattedData.join(' ')}`
           }
         }
         error = new Error(message, { cause: data })
         error.name = 'RPCError'
       }
       this.rpcHandler(response.id, error, response.result)
-    } catch (cause) {
+    }
+    catch (cause) {
       const error = new ClientMessageError('got invalid message', { cause })
 
       this.onError(error)
@@ -304,7 +302,7 @@ export class Client extends EventTarget {
     const error = new ClientWebSocketError('WebSocket error', { cause: e })
     this.onError(error)
   }
-  //#endregion
+  // #endregion
 
   private retryHandler = () => {
     if (this.active) {
@@ -317,7 +315,7 @@ export class Client extends EventTarget {
       id: ++this.seqNo,
       method: 'call',
       params: [api, method, params],
-      jsonrpc: '2.0'
+      jsonrpc: '2.0',
     }
     return this.send(request)
   }
@@ -354,7 +352,8 @@ export class Client extends EventTarget {
       this.pending.delete(seq)
       if (error) {
         reject(error)
-      } else {
+      }
+      else {
         resolve(response)
       }
     }
@@ -376,7 +375,8 @@ export class Client extends EventTarget {
     toSend.map(async (pending) => {
       try {
         await this.write(pending.request)
-      } catch (error) {
+      }
+      catch (error) {
         this.rpcHandler(pending.request.id, error as Error)
       }
     })
@@ -384,5 +384,5 @@ export class Client extends EventTarget {
 }
 
 function defaultBackoff(failureCount: number): number {
-  return Math.min(Math.pow(failureCount * 10, 2), 10 * 1000)
+  return Math.min((failureCount * 10) ** 2, 10 * 1000)
 }

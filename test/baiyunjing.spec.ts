@@ -1,7 +1,8 @@
-import { Client, type DynamicGlobalProperties } from './../src'
+import type { DynamicGlobalProperties } from './../src'
+import { Client } from './../src'
 
 vi.setConfig({
-  testTimeout: 100000
+  testTimeout: 100000,
 })
 const client = Client.testnet({ autoConnect: false })
 
@@ -17,7 +18,6 @@ describe('client instance base status', () => {
 })
 
 describe('node and chain information', () => {
-
   it('should get state', async () => {
     const state = await client.baiyujing.getState()
     expect(state).toHaveProperty('props')
@@ -57,7 +57,6 @@ describe('node and chain information', () => {
 
   it('should get chain dynamic global properties', async () => {
     const properties = await client.baiyujing.getDynamicGlobalProperties()
-
 
     expect(properties).toHaveProperty('head_block_number')
     expect(properties).toHaveProperty('head_block_id')
@@ -109,7 +108,7 @@ describe('node and chain information', () => {
   })
 })
 
-describe("account information", () => {
+describe('account information', () => {
   it('should get accounts', async () => {
     const accounts = await client.baiyujing.getAccounts(['sifu'])
 
@@ -157,20 +156,19 @@ describe("account information", () => {
     expect(routes).instanceOf(Array)
   })
 
-
   it('should get qi delegations', async () => {
     const delegations = await client.baiyujing.getQiDelegations('sifu', 10, 10)
 
     expect(delegations).toMatchInlineSnapshot(`[]`)
   })
 
-  //TODO(@enpitsulin): 记录下报错
+  // TODO(@enpitsulin): 记录下报错
   it.skip('should get expiring qi delegations', async () => {
     try {
       const delegations = await client.baiyujing.getExpiringQiDelegations('sifu', 0, 10)
       expect(delegations).toMatchInlineSnapshot(`[]`)
-
-    } catch (e) {
+    }
+    catch (e) {
       expect(e).toBeInstanceOf(Error)
       expect((e as Error).cause).toMatchInlineSnapshot(`
         {
@@ -199,7 +197,6 @@ describe("account information", () => {
   })
 
   it('should get account history', async () => {
-
     const history = await client.baiyujing.getAccountHistory('initminer', -1, 1)
 
     await expect(history).toMatchFileSnapshot('./__snapshots__/get_account_history.snap')
@@ -217,7 +214,6 @@ describe("account information", () => {
 })
 
 describe('siming', () => {
-
   it('should get simings', async () => {
     const simings = await client.baiyujing.getSimings([0])
 
@@ -227,7 +223,6 @@ describe('siming', () => {
     expect(simings[0]).toHaveProperty('props')
     expect(simings[0]).toHaveProperty('running_version')
     expect(simings[0]).toHaveProperty('signing_key')
-
   })
 
   it('should get siming by account', async () => {
@@ -262,27 +257,25 @@ describe('siming', () => {
   })
 })
 
-
 describe('transaction', () => {
-
   it('should get transaction hex', async () => {
     const hex = await client.baiyujing.getTransactionHex({
-      "expiration": "2025-02-04T16:05:57",
-      "extensions": [],
-      "operations": [
+      expiration: '2025-02-04T16:05:57',
+      extensions: [],
+      operations: [
         [
-          "transfer_to_qi",
+          'transfer_to_qi',
           {
-            "amount": "10.000 YANG",
-            "from": "initminer",
-            "to": "dage",
+            amount: '10.000 YANG',
+            from: 'initminer',
+            to: 'dage',
           },
         ],
       ],
-      "ref_block_num": 21701,
-      "ref_block_prefix": 1734260487,
-      "signatures": [
-        "2040d2b937d51ff4c4ac08bbd6c5df5f4bfcb3973ab8aeafe229845e0ff3c5f6a629f4dbe96633abd377fdc5521947b64ae4a41faecffbc5a4d1fe0cd49f0bcf7e",
+      ref_block_num: 21701,
+      ref_block_prefix: 1734260487,
+      signatures: [
+        '2040d2b937d51ff4c4ac08bbd6c5df5f4bfcb3973ab8aeafe229845e0ff3c5f6a629f4dbe96633abd377fdc5521947b64ae4a41faecffbc5a4d1fe0cd49f0bcf7e',
       ],
     })
     expect(hex).toBe(`c55407b75e67e53aa267010309696e69746d696e6572046461676510270000000000000359414e4700000000012040d2b937d51ff4c4ac08bbd6c5df5f4bfcb3973ab8aeafe229845e0ff3c5f6a629f4dbe96633abd377fdc5521947b64ae4a41faecffbc5a4d1fe0cd49f0bcf7e`)
@@ -302,70 +295,70 @@ describe('transaction', () => {
   it('should get require signatures', async () => {
     const signatures = await client.baiyujing.getRequiredSignatures(
       {
-        "expiration": "2025-02-04T16:05:57",
-        "extensions": [],
-        "operations": [
+        expiration: '2025-02-04T16:05:57',
+        extensions: [],
+        operations: [
           [
-            "transfer_to_qi",
+            'transfer_to_qi',
             {
-              "amount": "10.000 YANG",
-              "from": "initminer",
-              "to": "dage",
+              amount: '10.000 YANG',
+              from: 'initminer',
+              to: 'dage',
             },
           ],
         ],
-        "ref_block_num": 21701,
-        "ref_block_prefix": 1734260487,
-        "signatures": [
-          "2040d2b937d51ff4c4ac08bbd6c5df5f4bfcb3973ab8aeafe229845e0ff3c5f6a629f4dbe96633abd377fdc5521947b64ae4a41faecffbc5a4d1fe0cd49f0bcf7e",
+        ref_block_num: 21701,
+        ref_block_prefix: 1734260487,
+        signatures: [
+          '2040d2b937d51ff4c4ac08bbd6c5df5f4bfcb3973ab8aeafe229845e0ff3c5f6a629f4dbe96633abd377fdc5521947b64ae4a41faecffbc5a4d1fe0cd49f0bcf7e',
         ],
       },
-      []
+      [],
     )
     expect(signatures).toMatchInlineSnapshot(`[]`)
   })
 
   it('should get potential signatures', async () => {
     const signatures = await client.baiyujing.getPotentialSignatures({
-      "expiration": "2025-02-04T16:05:57",
-      "extensions": [],
-      "operations": [
+      expiration: '2025-02-04T16:05:57',
+      extensions: [],
+      operations: [
         [
-          "transfer_to_qi",
+          'transfer_to_qi',
           {
-            "amount": "10.000 YANG",
-            "from": "initminer",
-            "to": "dage",
+            amount: '10.000 YANG',
+            from: 'initminer',
+            to: 'dage',
           },
         ],
       ],
-      "ref_block_num": 21701,
-      "ref_block_prefix": 1734260487,
-      "signatures": [
-        "2040d2b937d51ff4c4ac08bbd6c5df5f4bfcb3973ab8aeafe229845e0ff3c5f6a629f4dbe96633abd377fdc5521947b64ae4a41faecffbc5a4d1fe0cd49f0bcf7e",
+      ref_block_num: 21701,
+      ref_block_prefix: 1734260487,
+      signatures: [
+        '2040d2b937d51ff4c4ac08bbd6c5df5f4bfcb3973ab8aeafe229845e0ff3c5f6a629f4dbe96633abd377fdc5521947b64ae4a41faecffbc5a4d1fe0cd49f0bcf7e',
       ],
     })
-    expect(signatures).toEqual(["TAI6LLegbAgLAy28EHrffBVuANFWcFgmqRMW13wBmTExqFE9SCkg4"])
+    expect(signatures).toEqual(['TAI6LLegbAgLAy28EHrffBVuANFWcFgmqRMW13wBmTExqFE9SCkg4'])
   })
 
   it('should verify authority', async () => {
     const authority = await client.baiyujing.verifyAuthority({
-      "expiration": "2025-02-04T16:05:57",
-      "extensions": [],
-      "operations": [
+      expiration: '2025-02-04T16:05:57',
+      extensions: [],
+      operations: [
         [
-          "transfer_to_qi",
+          'transfer_to_qi',
           {
-            "amount": "10.000 YANG",
-            "from": "initminer",
-            "to": "dage",
+            amount: '10.000 YANG',
+            from: 'initminer',
+            to: 'dage',
           },
         ],
       ],
-      "ref_block_num": 21701,
-      "ref_block_prefix": 1734260487,
-      "signatures": [
-        "2040d2b937d51ff4c4ac08bbd6c5df5f4bfcb3973ab8aeafe229845e0ff3c5f6a629f4dbe96633abd377fdc5521947b64ae4a41faecffbc5a4d1fe0cd49f0bcf7e",
+      ref_block_num: 21701,
+      ref_block_prefix: 1734260487,
+      signatures: [
+        '2040d2b937d51ff4c4ac08bbd6c5df5f4bfcb3973ab8aeafe229845e0ff3c5f6a629f4dbe96633abd377fdc5521947b64ae4a41faecffbc5a4d1fe0cd49f0bcf7e',
       ],
     })
     expect(authority).toBe(true)
@@ -377,13 +370,12 @@ describe('transaction', () => {
   })
 })
 
-
-describe('Nfa', () => {
+describe('nfa', () => {
   it('should get nfa', async () => {
     const nfa = await client.baiyujing.find_nfa(1)
     expect(nfa).toHaveProperty('id')
     expect(nfa).toHaveProperty('symbol')
-    //@ts-expect-error TODO(@enpitsulin): Nfa 的类型
+    // @ts-expect-error TODO(@enpitsulin): Nfa 的类型
     expect(nfa.symbol).toBe('nfa.jingshu.book')
   })
 
@@ -415,11 +407,9 @@ describe('Nfa', () => {
     const info = await client.baiyujing.evalNfaActionWithStringArgs(28, 'short', '100')
     expect(info).toHaveProperty('exist')
   })
-
 })
 
-describe('Actor', () => {
-
+describe('actor', () => {
   it('should find actor', async () => {
     const actor = await client.baiyujing.findActor('李火旺')
     expect(actor).toHaveProperty('name', '李火旺')
@@ -450,7 +440,6 @@ describe('Actor', () => {
     const rules = await client.baiyujing.findActorTalentRules([0, 1])
     expect(rules).toBeInstanceOf(Array)
     expect(rules).toHaveLength(2)
-
   })
 
   it('should list actors on zone', async () => {
@@ -459,8 +448,7 @@ describe('Actor', () => {
   })
 })
 
-
-describe('Tiandao', () => {
+describe('tiandao', () => {
   it('should get tiandao properties', async () => {
     const properties = await client.baiyujing.getTiandaoProperties()
     expect(properties).toBeDefined()

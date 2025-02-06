@@ -5,7 +5,7 @@ export function waitForEvent<T>(target: EventTarget, event: string): Promise<T> 
       (e) => {
         resolve(e as T)
       },
-      { once: true }
+      { once: true },
     )
   })
 }
@@ -23,13 +23,14 @@ export function iteratorStream<T>(iterator: AsyncIterableIterator<T>): ReadableS
         const { value, done } = await iterator.next()
         if (done) {
           controller.close()
-        } else {
+        }
+        else {
           controller.enqueue(value)
         }
-      } catch (error) {
+      }
+      catch (error) {
         controller.error(error)
       }
-    }
+    },
   })
 }
-
