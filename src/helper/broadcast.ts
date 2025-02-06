@@ -169,12 +169,31 @@ export class BroadcastAPI {
     return this.sendOperations([op], key)
   }
 
+  public async prepareTransaction(transaction: Pick<Transaction, 'operations'> & Partial<Transaction>): Promise<Transaction> {
+    const props = await this.client.baiyujing.getDynamicGlobalProperties()
+
+    const ref_block_num = props.head_block_number & 0xFFFF
+    const ref_block_prefix = new DataView(hexToBytes(props.head_block_id).buffer).getUint32(4, true)
+    const expiration = new Date(new Date(`${props.time}Z`).getTime() + this.expireTime).toISOString().slice(0, -5)
+    const extensions: unknown[] = []
+
+    return Object.assign(
+      {
+        expiration,
+        extensions,
+        ref_block_num,
+        ref_block_prefix,
+      },
+      transaction
+    )
+  }
+
   /**
    * 签署并向网络广播带有操作的交易。如果交易过期则抛出异常。
    * @param operations 要发送的操作列表
    * @param key 用于签署交易的私钥
    */
-  public async sendOperations(operations: Operation[], key: PrivateKey | PrivateKey[]): Promise<TransactionConfirmation> {
+  public async sendOperations<Op extends Operation[]>(operations: Op, key: PrivateKey | PrivateKey[]): Promise<TransactionConfirmation> {
     const props = await this.client.baiyujing.getDynamicGlobalProperties()
 
     const ref_block_num = props.head_block_number & 0xFFFF

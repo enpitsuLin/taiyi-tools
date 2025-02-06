@@ -366,9 +366,10 @@ export interface CreateActorTalentRuleOperation extends Operation {
 export interface CreateActorOperation extends Operation {
   0: 'create_actor'
   1: {
-    owner: string
-    name: string
-    json_metadata: string
+    fee: Asset | string
+    creator: string
+    family_name: string
+    last_name: string
   }
 }
 

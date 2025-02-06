@@ -4,6 +4,7 @@ import defu from 'defu'
 import { version } from '../package.json'
 import { BaiYuJingAPI } from './helper/baiyujing'
 import { Blockchain } from './helper/blockchain'
+import { BroadcastAPI } from './helper/broadcast'
 import { waitForEvent } from './utils'
 
 /**
@@ -169,6 +170,7 @@ export class Client extends EventTarget {
   // #region Helper
   public readonly baiyujing: BaiYuJingAPI
   public readonly blockchain: Blockchain
+  public readonly broadcast: BroadcastAPI
   // #endregion
 
   constructor(url: string, options: ClientOptions = {}) {
@@ -182,6 +184,7 @@ export class Client extends EventTarget {
 
     this.baiyujing = new BaiYuJingAPI(this)
     this.blockchain = new Blockchain(this)
+    this.broadcast = new BroadcastAPI(this)
 
     this.retryOptions = defu(typeof options.retry === 'object' ? options.retry : { retry: options.retry }, defaultRetryOptions)
     if (options.autoConnect === undefined || options.autoConnect === true) {

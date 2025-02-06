@@ -379,9 +379,10 @@ const OperationSerializers: Record<Operation['0'], Serializer> = {
   ]),
 
   create_actor: OperationDataSerializer(28, [
-    ['owner', StringSerializer],
-    ['name', StringSerializer],
-    ['json_metadata', StringSerializer],
+    ['fee', AssetSerializer],
+    ['creator', StringSerializer],
+    ['family_name', StringSerializer],
+    ['last_name', StringSerializer],
   ]),
   // #endregion
 
