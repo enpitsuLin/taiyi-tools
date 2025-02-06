@@ -25,7 +25,7 @@ describe('serializers', () => {
       }
       for (const [expected, value] of test.values) {
         const actual = serialize(serializer, value)
-        assert.equal(actual, expected)
+        expect(actual).toBe(expected)
       }
     })
   }
@@ -33,31 +33,31 @@ describe('serializers', () => {
   it('binary', () => {
     const data = HexBuffer.from('026400c800')
     const r1 = serialize(Types.Binary(), HexBuffer.from([0x80, 0x00, 0x80]))
-    assert.equal(r1, '03800080')
+    expect(r1).toBe('03800080')
     const r2 = serialize(Types.Binary(), HexBuffer.from(hexToBytes('026400c800')))
-    assert.equal(r2, '05026400c800')
+    expect(r2).toBe('05026400c800')
     const r3 = serialize(Types.Binary(5), HexBuffer.from(data))
-    assert.equal(r3, '026400c800')
-    assert.throws(() => {
+    expect(r3).toBe('026400c800')
+    expect(() => {
       serialize(Types.Binary(10), data)
-    })
+    }).toThrow()
   })
 
   it('void', () => {
-    assert.throws(() => {
+    expect(() => {
       serialize(Types.Void, null)
-    })
+    }).toThrow()
   })
 
   it('invalid Operations', () => {
-    assert.throws(() => {
+    expect(() => {
       serialize(Types.Operation, ['transfer', {}])
-    })
-    assert.throws(() => {
+    }).toThrow()
+    expect(() => {
       serialize(Types.Operation, ['transfer', { from: 1 }])
-    })
-    assert.throws(() => {
+    }).toThrow()
+    expect(() => {
       serialize(Types.Operation, ['transfer', 10])
-    })
+    }).toThrow()
   })
 })

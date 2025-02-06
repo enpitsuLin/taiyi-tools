@@ -152,7 +152,7 @@ function ObjectSerializer(keySerializers: Array<[string, Serializer]>) {
 
 function OptionalSerializer(valueSerializer: Serializer) {
   return (buffer: ByteBuffer, data: any) => {
-    if (data !== undefined) {
+    if (data !== undefined && data !== null) {
       buffer.writeByte(1)
       valueSerializer(buffer, data)
     }
