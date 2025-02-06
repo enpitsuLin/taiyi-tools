@@ -182,15 +182,15 @@ export class BaiYuJingAPI {
   // #endregion
 
   // #region NFA
-  async find_nfa(nfaId: number) {
+  async findNfa(nfaId: number) {
     return this.call<Nfa>('find_nfa', [nfaId])
   }
 
-  async find_nfas(nfaIds: number[]) {
+  async findNfas(nfaIds: number[]) {
     return this.call<Nfa[]>('find_nfas', [nfaIds])
   }
 
-  async list_nfas(owner: string, limit: number) {
+  async listNfas(owner: string, limit: number) {
     return this.call<Nfa[]>('list_nfas', [owner, limit])
   }
 

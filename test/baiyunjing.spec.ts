@@ -373,14 +373,14 @@ describe('transaction', () => {
 describe('nfa', () => {
   client.connect()
   it('should get nfa', async () => {
-    const nfa = await client.baiyujing.find_nfa(1)
+    const nfa = await client.baiyujing.findNfa(1)
     expect(nfa).toHaveProperty('id')
     expect(nfa).toHaveProperty('symbol')
     expect(nfa.symbol).toBe('nfa.jingshu.book')
   })
 
   it('should list all nfas', async () => {
-    const nfas = await client.baiyujing.list_nfas('sifu', 10)
+    const nfas = await client.baiyujing.listNfas('sifu', 10)
     expect(nfas).instanceOf(Array)
     expect(nfas.length).greaterThan(0)
   })
