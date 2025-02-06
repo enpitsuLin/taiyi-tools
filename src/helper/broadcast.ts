@@ -158,8 +158,7 @@ export class BroadcastAPI {
    * 这将委托设置为`qi`，根据需要增加或减少它。
    * (即委托为0时会移除委托)
    *
-   * 当委托被移除时，气会被置于一周的清算期，以防止
-   * 同一个司命被重复崇拜。
+   * 当委托被移除时，气会被置于一周的清算期，以防止同一个司命被重复投票。
    *
    * @param options 委托选项
    * @param key 委托人的私有活动密钥
@@ -169,6 +168,10 @@ export class BroadcastAPI {
     return this.sendOperations([op], key)
   }
 
+  /**
+   * 补全交易中的必要字段
+   * @param transaction 交易
+   */
   public async prepareTransaction(transaction: Pick<Transaction, 'operations'> & Partial<Transaction>): Promise<Transaction> {
     const props = await this.client.baiyujing.getDynamicGlobalProperties()
 

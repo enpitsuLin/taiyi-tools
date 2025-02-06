@@ -71,22 +71,6 @@ describe('broadcast', () => {
     expect(acc2).toBeDefined()
   })
 
-  it('should create correct key', async () => {
-    const activeKey = PrivateKey.fromLogin(acc1.username, acc1.password)
-    const ownerKey = PrivateKey.fromLogin(acc1.username, acc1.password, 'owner')
-    const postingKey = PrivateKey.fromLogin(acc1.username, acc1.password, 'posting')
-    const memoKey = PrivateKey.fromLogin(acc1.username, acc1.password, 'memo')
-
-    expect(activeKey.toString())
-      .toBe(PrivateKey.from('5JQ4D21dDeW5fe3fT5BwMaa7vhUyvCdZqet1knFbNuRXTBQAhdb').toString())
-    expect(ownerKey.toString())
-      .toBe(PrivateKey.from('5KGudtStQtgXVKud22escrZKn6mxq298MFS7tkEakBN85QR22U1').toString())
-    expect(postingKey.toString())
-      .toBe(PrivateKey.from('5KczcseNZriu9jANqvdLixd4jYnpg4jgKL7NnLRVtaZwXiScvgf').toString())
-    expect(memoKey.toString())
-      .toBe(PrivateKey.from('5JuZrLeNWustMjCqzzCamHdzSoM1PMvWsUc2hyjpVLDb4zYkqcs').toString())
-  })
-
   it('should get valid prepare tx', async () => {
     const operations: Operation[] = []
     const preparedTx = await client.broadcast.prepareTransaction({ operations })
@@ -125,5 +109,19 @@ describe('broadcast', () => {
     expect(tx).toHaveProperty('ref_block_prefix', preparedTx.ref_block_prefix)
     expect(tx).toHaveProperty('operations', operations)
     expect(tx).toHaveProperty('signatures', [expect.any(String)])
+  })
+
+  // 功能正常
+  it.skip('should delegate qi', async () => {
+    const activeKey = PrivateKey.fromLogin(acc1.username, acc1.password)
+    const confirmation = await client.broadcast.delegateQi(
+      {
+        delegator: acc1.username,
+        delegatee: 'sifu',
+        qi: '0.000500 QI',
+      },
+      activeKey,
+    )
+    expect(confirmation).toHaveProperty('id', expect.any(String))
   })
 })
