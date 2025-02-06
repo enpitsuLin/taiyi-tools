@@ -189,9 +189,9 @@ export class BroadcastAPI {
   }
 
   /**
-   * 签署并向网络广播带有操作的交易。如果交易过期则抛出异常。
+   * 签名并向网络广播带有操作的交易。如果交易过期则抛出异常。
    * @param operations 要发送的操作列表
-   * @param key 用于签署交易的私钥
+   * @param key 用于签名交易的私钥
    */
   public async sendOperations<Op extends Operation[]>(operations: Op, key: PrivateKey | PrivateKey[]): Promise<TransactionConfirmation> {
     const props = await this.client.baiyujing.getDynamicGlobalProperties()
