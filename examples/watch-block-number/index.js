@@ -1,6 +1,7 @@
-import { Client, BlockchainMode } from '@taiyinet/ctaiyi'
+/* eslint-disable no-console */
+import { BlockchainMode, Client } from '@taiyinet/ctaiyi'
 
-const client = Client.testnet() 
+const client = Client.testnet()
 
 const stream = client.blockchain.getBlockNumberStream({ mode: BlockchainMode.Latest })
 
@@ -9,8 +10,8 @@ console.log(`Tracking block number`)
 stream.getReader().read().then(({ done, value }) => {
   if (done) {
     console.log('Stream closed')
-  } else {
+  }
+  else {
     console.log('Block number:', value)
   }
 })
-
