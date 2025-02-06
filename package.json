@@ -6,7 +6,9 @@
   "scripts": {
     "build": "unbuild",
     "prepack": "unbuild",
-    "test": "vitest"
+    "test": "vitest",
+    "lint": "eslint .",
+    "lint:fix": "eslint --fix ."
   },
   "exports": {
     ".": {
@@ -20,8 +22,10 @@
     "dist"
   ],
   "devDependencies": {
+    "@antfu/eslint-config": "^4.1.1",
     "@types/assert": "^1.5.11",
     "@types/bytebuffer": "^5.0.49",
+    "eslint": "^9.19.0",
     "unbuild": "^3.3.1",
     "vitest": "^3.0.5"
   },
