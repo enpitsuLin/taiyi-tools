@@ -10,9 +10,9 @@ import type {
   TransferOperation,
 } from '../taiyi/operation'
 import type { SignedTransaction, Transaction, TransactionConfirmation } from '../taiyi/transcation'
-import assert from 'assert'
-
 import { hexToBytes } from '@noble/hashes/utils'
+
+import assert from 'tiny-invariant'
 import { cryptoUtils, PrivateKey, PublicKey } from '../crypto'
 import { Authority } from '../taiyi/account'
 import { Asset } from '../taiyi/asset'

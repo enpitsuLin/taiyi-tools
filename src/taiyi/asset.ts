@@ -1,4 +1,4 @@
-import assert from 'assert'
+import invariant from 'tiny-invariant'
 
 export interface FaiAsset {
   amount: string | number
@@ -78,7 +78,7 @@ export class Asset {
    * 返回两个资产中较小的一个。
    */
   public static min(a: Asset, b: Asset) {
-    assert(a.symbol === b.symbol, 'can not compare assets with different symbols')
+    invariant(a.symbol === b.symbol, 'can not compare assets with different symbols')
     return a.amount < b.amount ? a : b
   }
 
@@ -86,7 +86,7 @@ export class Asset {
    * 返回两个资产中较大的一个。
    */
   public static max(a: Asset, b: Asset) {
-    assert(a.symbol === b.symbol, 'can not compare assets with different symbols')
+    invariant(a.symbol === b.symbol, 'can not compare assets with different symbols')
     return a.amount > b.amount ? a : b
   }
 
@@ -149,7 +149,7 @@ export class Asset {
    */
   public add(amount: Asset | string | number): Asset {
     const other = Asset.from(amount, this.symbol)
-    assert(this.symbol === other.symbol, 'can not add with different symbols')
+    invariant(this.symbol === other.symbol, 'can not add with different symbols')
     return new Asset(this.amount + other.amount, this.symbol)
   }
 
@@ -158,7 +158,7 @@ export class Asset {
    */
   public subtract(amount: Asset | string | number): Asset {
     const other = Asset.from(amount, this.symbol)
-    assert(this.symbol === other.symbol, 'can not subtract with different symbols')
+    invariant(this.symbol === other.symbol, 'can not subtract with different symbols')
     return new Asset(this.amount - other.amount, this.symbol)
   }
 
@@ -167,7 +167,7 @@ export class Asset {
    */
   public multiply(factor: Asset | string | number): Asset {
     const other = Asset.from(factor, this.symbol)
-    assert(this.symbol === other.symbol, 'can not multiply with different symbols')
+    invariant(this.symbol === other.symbol, 'can not multiply with different symbols')
     return new Asset(this.amount * other.amount, this.symbol)
   }
 
@@ -176,7 +176,7 @@ export class Asset {
    */
   public divide(divisor: Asset | string | number): Asset {
     const other = Asset.from(divisor, this.symbol)
-    assert(this.symbol === other.symbol, 'can not divide with different symbols')
+    invariant(this.symbol === other.symbol, 'can not divide with different symbols')
     return new Asset(this.amount / other.amount, this.symbol)
   }
 
@@ -235,8 +235,8 @@ export class Price {
    * base 和 quote 必须具有不同的 symbol 定义。
    */
   constructor(public readonly base: Asset, public readonly quote: Asset) {
-    assert(base.amount !== 0 && quote.amount !== 0, 'base and quote assets must be non-zero')
-    assert(base.symbol !== quote.symbol, 'base and quote can not have the same symbol')
+    invariant(base.amount !== 0 && quote.amount !== 0, 'base and quote assets must be non-zero')
+    invariant(base.symbol !== quote.symbol, 'base and quote can not have the same symbol')
   }
 
   /**
@@ -252,11 +252,11 @@ export class Price {
    */
   public convert(asset: Asset) {
     if (asset.symbol === this.base.symbol) {
-      assert(this.base.amount > 0)
+      invariant(this.base.amount > 0)
       return new Asset(asset.amount * this.quote.amount / this.base.amount, this.quote.symbol)
     }
     else if (asset.symbol === this.quote.symbol) {
-      assert(this.quote.amount > 0)
+      invariant(this.quote.amount > 0)
       return new Asset(asset.amount * this.base.amount / this.quote.amount, this.base.symbol)
     }
     else {

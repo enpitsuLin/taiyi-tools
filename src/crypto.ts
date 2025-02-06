@@ -1,5 +1,4 @@
 import type { SignedTransaction, Transaction } from './taiyi/transcation'
-import assert from 'assert'
 import { hmac } from '@noble/hashes/hmac'
 import { ripemd160 as nobleRipemd160 } from '@noble/hashes/ripemd160'
 import { sha256 as nobleSha256 } from '@noble/hashes/sha2'
@@ -7,6 +6,7 @@ import { bytesToHex, concatBytes, hexToBytes } from '@noble/hashes/utils'
 import * as secp from '@noble/secp256k1'
 import bs58 from 'bs58'
 import ByteBuffer from 'bytebuffer'
+import invariant from 'tiny-invariant'
 import { DEFAULT_ADDRESS_PREFIX, DEFAULT_CHAIN_ID } from './client'
 import { Types } from './taiyi/serializer'
 
@@ -36,19 +36,19 @@ export function encodePublic(key: Uint8Array | string, prefix: string): string {
 
 export function decodePublic(encodedKey: string): { key: Uint8Array, prefix: string } {
   const prefix = encodedKey.slice(0, 3)
-  assert.strictEqual(prefix.length, 3, 'public key invalid prefix')
+  invariant(prefix.length === 3, 'public key invalid prefix')
   encodedKey = encodedKey.slice(3)
   const buffer = bs58.decode(encodedKey)
   const checksum = buffer.slice(-4)
   const key = buffer.slice(0, -4)
   const checksumVerify = ripemd160(key).slice(0, 4)
-  assert.deepStrictEqual(checksumVerify, checksum, 'public key checksum mismatch')
+  invariant(bytesToHex(checksumVerify) === bytesToHex(checksum), 'public key checksum mismatch')
   return { key, prefix }
 }
 
 export function encodePrivate(key: Uint8Array | string): string {
   const msg = typeof key === 'string' ? new TextEncoder().encode(key) : key
-  assert.strictEqual(msg.at(0), 0x80, 'private key network id mismatch')
+  invariant(msg.at(0) === 0x80, 'private key network id mismatch')
   const checksum = doubleSha256(msg)
 
   const combined = concatBytes(msg, checksum.slice(0, 4))
@@ -57,11 +57,11 @@ export function encodePrivate(key: Uint8Array | string): string {
 
 export function decodePrivate(encodedKey: string): Uint8Array {
   const buffer = bs58.decode(encodedKey)
-  assert.deepStrictEqual(buffer.slice(0, 1), NETWORK_ID, 'private key network id mismatch')
+  invariant(bytesToHex(buffer.slice(0, 1)) === bytesToHex(NETWORK_ID), 'private key network id mismatch')
   const checksum = buffer.slice(-4)
   const key = buffer.slice(0, -4)
   const checksumVerify = doubleSha256(key).slice(0, 4)
-  assert.deepStrictEqual(checksumVerify, checksum, 'private key checksum mismatch')
+  invariant(bytesToHex(checksumVerify) === bytesToHex(checksum), 'private key checksum mismatch')
   return key
 }
 
@@ -93,7 +93,7 @@ export class PublicKey {
     public readonly key: Uint8Array,
     public readonly prefix: string = DEFAULT_ADDRESS_PREFIX,
   ) {
-    assert(
+    invariant(
       secp.ProjectivePoint.fromHex(key).assertValidity(),
       'invalid public key',
     )
@@ -142,7 +142,7 @@ export class PrivateKey {
   }
 
   constructor(private key: Uint8Array) {
-    assert(secp.utils.isValidPrivateKey(key), 'invalid private key')
+    invariant(secp.utils.isValidPrivateKey(key), 'invalid private key')
   }
 
   public sign(message: Uint8Array): Signature {
@@ -226,7 +226,7 @@ function signTransaction(
 
 export class Signature {
   public static fromU8(array: Uint8Array) {
-    assert.strictEqual(array.length, 65, 'invalid signature')
+    invariant(array.length === 65, 'invalid signature')
     const recovery = array.at(0)! - 31
     const data = array.slice(1)
     return new Signature(data, recovery)
@@ -237,7 +237,7 @@ export class Signature {
   }
 
   constructor(public data: Uint8Array, public recovery: number) {
-    assert.equal(data.length, 64, 'invalid signature')
+    invariant(data.length === 64, 'invalid signature')
   }
 
   public recover(message: Uint8Array, prefix?: string) {

@@ -1,6 +1,6 @@
-import assert from 'assert'
 import { bytesToHex, hexToBytes } from '@noble/hashes/utils'
 import defu from 'defu'
+import invariant from 'tiny-invariant'
 import { version } from '../package.json'
 import { BaiYuJingAPI } from './helper/baiyujing'
 import { Blockchain } from './helper/blockchain'
@@ -177,7 +177,7 @@ export class Client extends EventTarget {
     super()
     this.url = url
     this.chainId = options.chainId ? hexToBytes(options.chainId) : DEFAULT_CHAIN_ID
-    assert(this.chainId.length === 32, 'invalid chain id')
+    invariant(this.chainId.length === 32, 'invalid chain id')
     this.addressPrefix = options.addressPrefix || DEFAULT_ADDRESS_PREFIX
 
     this.sendTimeout = options.timeout ?? 14 * 1000

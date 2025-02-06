@@ -197,7 +197,7 @@ describe('account information', () => {
   })
 
   it('should get account history', async () => {
-    const history = await client.baiyujing.getAccountHistory('initminer', -1, 1)
+    const history = await client.baiyujing.getAccountHistory('initminer', 10, 1)
 
     await expect(history).toMatchFileSnapshot('./__snapshots__/get_account_history.snap')
   })
